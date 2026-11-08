@@ -1,0 +1,2209 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dijital Ölçme ve Veri Toplama - İnteraktif Sınav & Ezber Sistemi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+            color: #f1f5f9;
+            overflow-x: hidden;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        .option-btn {
+            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+        }
+        @keyframes pulseSubtle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .animate-pulse-subtle {
+            animation: pulseSubtle 2s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <!-- Top Header & Live Progress Dashboard -->
+    <header class="sticky top-0 z-30 glass-panel border-b border-slate-800/80 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                <!-- Title & Subtitle -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md shadow-indigo-500/20">
+                            <i class="fa-solid fa-microchip text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                                Dijital Ölçme ve Veri Toplama
+                                <span class="hidden sm:inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                                    48 Tam Soru
+                                </span>
+                            </h1>
+                            <p class="text-xs text-slate-400">Sınav1 + Sınav2 (Test 1-2-3) + Kahoot Canlı Ders Soruları Eksiksiz Set</p>
+                        </div>
+                    </div>
+
+                    <!-- Reset Button (Mobile) -->
+                    <button onclick="openResetModal()" class="lg:hidden text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-rose-950/60 text-slate-300 hover:text-rose-300 border border-slate-700 transition" title="İlerlemeyi Sıfırla">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+
+                <!-- Live Stats Pills -->
+                <div class="grid grid-cols-4 sm:flex sm:items-center gap-2">
+                    <div class="bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-wider text-slate-400 font-medium">Çözülen</div>
+                            <div class="text-xs sm:text-sm font-bold text-white"><span id="stat-answered">0</span> / 48</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-emerald-950/30 border border-emerald-800/50 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-wider text-emerald-300/80 font-medium">Doğru</div>
+                            <div class="text-xs sm:text-sm font-bold text-emerald-400" id="stat-correct">0</div>
+                        </div>
+                    </div>
+
+                    <button onclick="startWrongAnswersQuiz()" class="bg-rose-950/40 hover:bg-rose-900/50 border border-rose-700/60 px-3 py-1.5 rounded-xl flex items-center gap-2 text-left transition group cursor-pointer" title="Sadece hata yaptığın soruları çözmek için tıkla!">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-400 text-xs group-hover:scale-110 transition"></i>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-wider text-rose-300/90 font-medium flex items-center gap-1">
+                                Hatalarım <i class="fa-solid fa-arrow-right text-[9px] opacity-75"></i>
+                            </div>
+                            <div class="text-xs sm:text-sm font-bold text-rose-400" id="stat-wrong">0</div>
+                        </div>
+                    </button>
+
+                    <button onclick="startStarredQuiz()" class="bg-amber-950/30 hover:bg-amber-900/40 border border-amber-700/50 px-3 py-1.5 rounded-xl flex items-center gap-2 text-left transition group cursor-pointer" title="Yıldızladığın zor soruları çözmek için tıkla!">
+                        <i class="fa-solid fa-star text-amber-400 text-xs group-hover:scale-110 transition"></i>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-wider text-amber-300/90 font-medium">Yıldızlı</div>
+                            <div class="text-xs sm:text-sm font-bold text-amber-400" id="stat-starred">0</div>
+                        </div>
+                    </button>
+
+                    <button onclick="openResetModal()" class="hidden lg:flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-slate-800/90 hover:bg-rose-950/80 text-slate-300 hover:text-rose-300 border border-slate-700 hover:border-rose-700/60 transition ml-1" title="Tüm İlerlemeyi Sıfırla">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>Sıfırla</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Overall Mastery Progress Bar -->
+            <div class="mt-2.5 flex items-center gap-3">
+                <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden flex">
+                    <div id="progress-bar-correct" class="bg-emerald-500 h-full transition-all duration-300" style="width: 0%"></div>
+                    <div id="progress-bar-wrong" class="bg-rose-500 h-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <span id="stat-percentage" class="text-xs font-bold text-indigo-300 min-w-[3.5rem] text-right">%0 Başarı</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation Tabs -->
+    <div class="bg-slate-900/60 border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-between gap-2 py-2.5">
+            <!-- View Switcher -->
+            <div class="flex items-center gap-1.5 bg-slate-950/90 p-1 rounded-xl border border-slate-800 w-full sm:w-auto overflow-x-auto">
+                <button onclick="switchMainTab('quiz')" id="tab-btn-quiz" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 bg-indigo-600 text-white shadow">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>Test & Ezber Modu</span>
+                </button>
+                <button onclick="switchMainTab('mistakes')" id="tab-btn-mistakes" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800/60">
+                    <i class="fa-solid fa-rotate-left text-rose-400"></i>
+                    <span>Hatalarım & Tekrar</span>
+                    <span id="tab-badge-wrong" class="px-1.5 py-0.2 rounded-full text-[11px] bg-rose-500/20 text-rose-300 border border-rose-500/40">0</span>
+                </button>
+                <button onclick="switchMainTab('study')" id="tab-btn-study" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800/60">
+                    <i class="fa-solid fa-book-open text-emerald-400"></i>
+                    <span>Hızlı Ezber Tablosu (48 Soru)</span>
+                </button>
+                <button onclick="switchMainTab('flashcards')" id="tab-btn-flashcards" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800/60">
+                    <i class="fa-solid fa-layer-group text-amber-400"></i>
+                    <span>Ezber Kartları</span>
+                </button>
+            </div>
+
+            <!-- Quiz Settings Toggles (Visible in Quiz Mode) -->
+            <div id="quiz-controls-bar" class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                <!-- Mode Select: Instant Feedback vs Exam Mode -->
+                <div class="flex items-center bg-slate-950 border border-slate-800 rounded-xl p-1 text-xs">
+                    <button onclick="setFeedbackMode('instant')" id="mode-instant-btn" class="px-2.5 py-1.5 rounded-lg font-medium bg-emerald-600/90 text-white transition" title="Şıkka tıkladığında doğru/yanlış ve açıklamayı anında gösterir">
+                        <i class="fa-solid fa-bolt mr-1"></i>Anında Kontrol
+                    </button>
+                    <button onclick="setFeedbackMode('exam')" id="mode-exam-btn" class="px-2.5 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition" title="Cevapları sınav sonunda toplu gösterir">
+                        <i class="fa-solid fa-stopwatch mr-1"></i>Sınav Modu
+                    </button>
+                </div>
+
+                <!-- Shuffle Buttons -->
+                <div class="flex items-center gap-1.5">
+                    <button onclick="toggleShuffleQuestions()" id="btn-shuffle-q" class="text-xs px-2.5 py-2 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300 transition flex items-center gap-1.5" title="Soru Sırasını Karıştır">
+                        <i class="fa-solid fa-shuffle"></i>
+                        <span class="hidden md:inline">Soruları Karıştır</span>
+                    </button>
+                    <button onclick="toggleShuffleOptions()" id="btn-shuffle-opt" class="text-xs px-2.5 py-2 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300 transition flex items-center gap-1.5" title="A-B-C-D Şıklarının Yerini Karıştır (Şık yeri ezberini önler)">
+                        <i class="fa-solid fa-random"></i>
+                        <span class="hidden md:inline">Şıkları Karıştır</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+
+        <!-- ==================== VIEW 1: QUIZ & EZBER VIEW ==================== -->
+        <div id="view-quiz" class="space-y-6">
+            <!-- Category Filter Pills -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar" id="category-pills">
+                <!-- Populated dynamically by JS -->
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <!-- Left/Center: Active Question Card (8 cols) -->
+                <div class="lg:col-span-8 space-y-4">
+                    <div id="question-card-container" class="glass-panel rounded-2xl p-5 sm:p-7 shadow-xl relative overflow-hidden">
+                        <!-- Top Question Meta Bar -->
+                        <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-800">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span id="q-number-badge" class="px-3 py-1 rounded-lg bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 font-bold text-xs sm:text-sm">
+                                    Soru 1 / 48
+                                </span>
+                                <span id="q-category-badge" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-xs font-medium">
+                                    Kategori
+                                </span>
+                                <span id="q-status-badge" class="hidden px-2.5 py-1 rounded-lg text-xs font-semibold"></span>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <button onclick="toggleStarCurrentQuestion()" id="btn-star-current" class="px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-medium flex items-center gap-1.5 transition" title="Zor veya önemli soruları yıldızla">
+                                    <i class="fa-regular fa-star" id="icon-star-current"></i>
+                                    <span id="text-star-current">Yıldızla</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Question Text -->
+                        <h2 id="q-text" class="text-base sm:text-xl font-bold text-white leading-relaxed mb-6">
+                            Soru yükleniyor...
+                        </h2>
+
+                        <!-- Options List -->
+                        <div id="q-options" class="space-y-3">
+                            <!-- Dynamically populated buttons -->
+                        </div>
+
+                        <!-- Instant Feedback & Memory Tip Box -->
+                        <div id="q-feedback-box" class="hidden mt-6 rounded-2xl p-4 sm:p-5 border transition-all">
+                            <div class="flex items-start gap-3">
+                                <div id="feedback-icon" class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-lg mt-0.5"></div>
+                                <div class="flex-1 space-y-1.5">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <h4 id="feedback-title" class="font-bold text-sm sm:text-base"></h4>
+                                        <button id="btn-remove-from-wrong" onclick="markCurrentAsMastered()" class="hidden text-xs px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 font-semibold transition">
+                                            <i class="fa-solid fa-check mr-1"></i>Öğrendim, Hatalarımdan Çıkar
+                                        </button>
+                                    </div>
+                                    <p id="feedback-correct-answer" class="text-xs sm:text-sm font-semibold text-white"></p>
+                                    <div class="pt-2 mt-2 border-t border-white/10 text-xs sm:text-sm text-slate-200 leading-relaxed flex items-start gap-2">
+                                        <i class="fa-solid fa-lightbulb text-amber-400 mt-1 shrink-0"></i>
+                                        <div id="feedback-explanation"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Footer inside Question Card -->
+                        <div class="mt-7 pt-5 border-t border-slate-800/90 flex flex-wrap items-center justify-between gap-3">
+                            <button onclick="prevQuestion()" id="btn-prev" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:pointer-events-none text-slate-200 text-xs sm:text-sm font-semibold transition flex items-center gap-2">
+                                <i class="fa-solid fa-arrow-left"></i>
+                                <span>Önceki Soru</span>
+                            </button>
+
+                            <div class="flex items-center gap-2">
+                                <button onclick="clearCurrentAnswer()" id="btn-retry-single" class="hidden px-3.5 py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-medium transition" title="Bu soruyu tekrar çöz">
+                                    <i class="fa-solid fa-rotate-right mr-1"></i>Tekrar Çöz
+                                </button>
+
+                                <button onclick="finishExamEvaluation()" id="btn-finish-exam" class="hidden px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-emerald-600/25 transition">
+                                    <i class="fa-solid fa-flag-checkered mr-1.5"></i>Sınavı Bitir & Sonuçları Gör
+                                </button>
+
+                                <button onclick="nextQuestion()" id="btn-next" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-indigo-600/20 transition flex items-center gap-2">
+                                    <span>Sonraki Soru</span>
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Keyboard Shortcut Hint -->
+                    <div class="hidden sm:flex items-center justify-between text-xs text-slate-400 px-2">
+                        <div class="flex items-center gap-3">
+                            <span><kbd class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-300">1-4</kbd> veya <kbd class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-300">A-D</kbd> Şık Seç</span>
+                            <span><kbd class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-300">←</kbd> <kbd class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-300">→</kbd> Soru Değiştir</span>
+                            <span><kbd class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-300">S</kbd> Yıldızla</span>
+                        </div>
+                        <span>Verileriniz tarayıcıda otomatik kaydedilir</span>
+                    </div>
+                </div>
+
+                <!-- Right: Question Palette / Map & Quick Filters (4 cols) -->
+                <div class="lg:col-span-4 space-y-4">
+                    <div class="glass-panel rounded-2xl p-5 shadow-xl">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-table-cells text-indigo-400"></i>
+                                <span>Soru Gezgini</span>
+                            </h3>
+                            <span id="palette-summary" class="text-xs text-slate-400">48 Soru</span>
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 mb-4 pb-3 border-b border-slate-800">
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-emerald-500 inline-block"></span>Doğru</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-rose-500 inline-block"></span>Hatalı</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-amber-400 inline-block"></span>Yıldızlı</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-slate-800 border border-slate-700 inline-block"></span>Çözülmedi</span>
+                        </div>
+
+                        <!-- Numbered Grid -->
+                        <div id="question-palette-grid" class="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-6 gap-2 max-h-[340px] overflow-y-auto pr-1">
+                            <!-- Populated dynamically -->
+                        </div>
+
+                        <!-- Quick Actions inside Palette -->
+                        <div class="mt-4 pt-4 border-t border-slate-800 space-y-2">
+                            <button onclick="startWrongAnswersQuiz()" id="palette-btn-wrong" class="w-full py-2.5 px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 text-xs font-semibold transition flex items-center justify-between">
+                                <span class="flex items-center gap-2">
+                                    <i class="fa-solid fa-fire-flame-curved text-rose-400"></i>
+                                    <span>Sadece Hata Yaptıklarımı Çöz</span>
+                                </span>
+                                <span id="palette-wrong-count" class="px-2 py-0.5 rounded-full bg-rose-500/30 text-white font-bold">0</span>
+                            </button>
+
+                            <button onclick="resetCurrentCategoryAnswers()" class="w-full py-2 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs font-medium transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-eraser text-slate-400"></i>
+                                <span>Bu Kategorideki Cevapları Temizle</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== VIEW 2: MISTAKES & REVIEW POOL ==================== -->
+        <div id="view-mistakes" class="hidden space-y-6">
+            <div class="glass-panel rounded-2xl p-6 border border-rose-500/30">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2.5">
+                            <span class="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
+                                <i class="fa-solid fa-rotate-left"></i>
+                            </span>
+                            <span>Hata Yaptığım & Yıldızladığım Sorular</span>
+                        </h2>
+                        <p class="text-xs sm:text-sm text-slate-400 mt-1">
+                            Test çözerken yanlış işaretlediğiniz her soru otomatik olarak buraya düşer. İster buradan inceleyin, ister "Tekrar Testi Başlat" diyerek sadece bu soruları çözün.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="startWrongAnswersQuiz()" class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-rose-600/25 transition flex items-center gap-2">
+                            <i class="fa-solid fa-play"></i>
+                            <span>Hatalarımdan Test Başlat</span>
+                        </button>
+                        <button onclick="startStarredQuiz()" class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-amber-600/20 transition flex items-center gap-2">
+                            <i class="fa-solid fa-star"></i>
+                            <span>Yıldızlı Soruları Çöz</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mistakes List Container -->
+            <div id="mistakes-list-container" class="space-y-4">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+
+        <!-- ==================== VIEW 3: HIZLI EZBER TABLOSU (ALL 48 QUESTIONS) ==================== -->
+        <div id="view-study" class="hidden space-y-5">
+            <div class="glass-panel rounded-2xl p-5 sm:p-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-bolt text-amber-400"></i>
+                            <span>Hızlı Ezber & Cevap Anahtarı Tablosu (48 Soru)</span>
+                        </h2>
+                        <p class="text-xs sm:text-sm text-slate-400 mt-1">
+                            Sınavdan hemen önce tüm soruları, doğru cevaplarını ve anahtar kelimelerini hızlıca tarayın. Kendinizi denemek için "Cevapları Gizle" modunu açabilirsiniz.
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="toggleHideStudyAnswers()" id="btn-toggle-study-answers" class="px-3.5 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-xs sm:text-sm font-semibold transition flex items-center gap-2">
+                            <i class="fa-solid fa-eye-slash" id="icon-study-eye"></i>
+                            <span id="text-study-eye">Cevapları Gizle (Kendini Dene)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search & Category Filter for Study Table -->
+                <div class="mt-4 pt-4 border-t border-slate-800 grid grid-cols-1 md:grid-cols-12 gap-3">
+                    <div class="md:col-span-7 relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="text" id="study-search-input" oninput="renderStudyView()" placeholder="Soru, cevap veya anahtar kelime ara (örn: Nyquist, Kablo rengi, ADC, Termokupl...)" class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div class="md:col-span-5">
+                        <select id="study-category-select" onchange="renderStudyView()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500">
+                            <option value="ALL">Tüm Kategoriler (48 Soru)</option>
+                            <option value="SINAV1">Genel Değerlendirme Sınavı (10 Soru)</option>
+                            <option value="TEST1">Test 1: Temel Ölçme, Sensörler ve ADC/DAC (10 Soru)</option>
+                            <option value="TEST2">Test 2: LabVIEW Mimarisi ve Veri Akışı (10 Soru)</option>
+                            <option value="TEST3">Test 3: DAQ Kartları ve Sinyal Koşullama (10 Soru)</option>
+                            <option value="KAHOOT">Kahoot Canlı Ders Soruları (8 Soru)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Study Cards List -->
+            <div id="study-list-container" class="space-y-3">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+
+        <!-- ==================== VIEW 4: INTERACTIVE FLASHCARDS ==================== -->
+        <div id="view-flashcards" class="hidden max-w-3xl mx-auto space-y-6">
+            <div class="glass-panel rounded-2xl p-5 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-amber-400"></i>
+                        <span>Hızlı Soru-Cevap Ezber Kartları</span>
+                    </h2>
+                    <p class="text-xs text-slate-400">Kartın üzerine tıklayarak veya Boşluk (Space) tuşuyla cevabı çevirin.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <select id="flashcard-filter" onchange="initFlashcards()" class="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
+                        <option value="ALL">Tüm Sorular (48)</option>
+                        <option value="WRONG">Sadece Hatalarım</option>
+                        <option value="STARRED">Sadece Yıldızlılar</option>
+                        <option value="SINAV1">Değerlendirme Sınavı (10)</option>
+                        <option value="TEST1">Test 1: Sensörler & ADC (10)</option>
+                        <option value="TEST2">Test 2: LabVIEW Mimari (10)</option>
+                        <option value="TEST3">Test 3: DAQ & Sinyal (10)</option>
+                        <option value="KAHOOT">Kahoot Soruları (8)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Flashcard Box -->
+            <div onclick="flipFlashcard()" class="glass-panel rounded-3xl p-7 sm:p-10 min-h-[320px] flex flex-col justify-between cursor-pointer border-2 border-indigo-500/30 hover:border-indigo-500/60 transition shadow-2xl select-none relative">
+                <div class="flex items-center justify-between text-xs text-slate-400">
+                    <span id="fc-badge" class="px-3 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 font-bold">Kart 1 / 48</span>
+                    <span id="fc-side-label" class="uppercase tracking-wider font-semibold text-amber-400">SORU YÜZÜ (Tıkla Çevir)</span>
+                </div>
+
+                <div class="my-auto py-8 text-center space-y-4">
+                    <div id="fc-front-content" class="text-lg sm:text-2xl font-bold text-white leading-relaxed"></div>
+                    <div id="fc-back-content" class="hidden space-y-4">
+                        <div class="inline-block px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold uppercase">
+                            Doğru Cevap
+                        </div>
+                        <div id="fc-answer-text" class="text-xl sm:text-2xl font-extrabold text-emerald-400"></div>
+                        <div id="fc-tip-text" class="max-w-xl mx-auto text-xs sm:text-sm text-slate-300 bg-slate-900/90 p-4 rounded-2xl border border-slate-800"></div>
+                    </div>
+                </div>
+
+                <div class="text-center text-xs text-slate-500">
+                    <i class="fa-solid fa-hand-pointer mr-1"></i> Kartı çevirmek için herhangi bir yere dokunun
+                </div>
+            </div>
+
+            <!-- Flashcard Controls -->
+            <div class="flex items-center justify-between gap-3">
+                <button onclick="prevFlashcard()" class="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm transition">
+                    <i class="fa-solid fa-arrow-left mr-2"></i>Önceki Kart
+                </button>
+                <button onclick="flipFlashcard()" class="px-6 py-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold text-sm transition">
+                    <i class="fa-solid fa-arrows-rotate mr-1"></i>Çevir
+                </button>
+                <button onclick="nextFlashcard()" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition">
+                    Sonraki Kart<i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ==================== MODAL: RESET CONFIRMATION ==================== -->
+    <div id="modal-reset" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel max-w-md w-full rounded-2xl p-6 border border-slate-700 shadow-2xl space-y-4">
+            <div class="flex items-center gap-3 text-rose-400">
+                <div class="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white">İlerlemeyi Sıfırla</h3>
+            </div>
+            <p class="text-sm text-slate-300 leading-relaxed">
+                Ne yapmak istediğinizi seçin. Sadece işaretli şıkları temizleyip "Hatalarım" listenizi koruyabilir veya her şeyi tamamen sıfırlayabilirsiniz:
+            </p>
+            <div class="space-y-2.5 pt-2">
+                <button onclick="resetOnlySessionAnswers()" class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate"></i>
+                    <span>Sadece Çözülen Şıkları Temizle (Hatalarım & Yıldızlılar Kalsın)</span>
+                </button>
+                <button onclick="resetEverything()" class="w-full py-2.5 px-4 rounded-xl bg-rose-600/90 hover:bg-rose-600 text-white text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>Her Şeyi Tamamen Sıfırla</span>
+                </button>
+                <button onclick="closeResetModal()" class="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-medium transition">
+                    Vazgeç
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: EXAM RESULT SUMMARY ==================== -->
+    <div id="modal-exam-result" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel max-w-lg w-full rounded-3xl p-6 sm:p-8 border border-slate-700 shadow-2xl text-center space-y-5">
+            <div class="w-16 h-16 rounded-2xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center mx-auto text-3xl text-indigo-400">
+                <i class="fa-solid fa-award"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-extrabold text-white">Test Sonucu Özeti</h3>
+                <p id="exam-result-subtitle" class="text-xs sm:text-sm text-slate-400 mt-1"></p>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+                <div class="bg-emerald-950/40 border border-emerald-700/40 p-3 rounded-2xl">
+                    <div class="text-2xl font-extrabold text-emerald-400" id="res-correct">0</div>
+                    <div class="text-xs text-emerald-200/80">Doğru</div>
+                </div>
+                <div class="bg-rose-950/40 border border-rose-700/40 p-3 rounded-2xl">
+                    <div class="text-2xl font-extrabold text-rose-400" id="res-wrong">0</div>
+                    <div class="text-xs text-rose-200/80">Yanlış</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl">
+                    <div class="text-2xl font-extrabold text-indigo-400" id="res-score">%0</div>
+                    <div class="text-xs text-slate-400">Başarı</div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-2.5 pt-2">
+                <button onclick="closeExamResultModal(); startWrongAnswersQuiz();" id="btn-modal-solve-wrong" class="flex-1 py-3 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm font-bold transition">
+                    <i class="fa-solid fa-rotate-left mr-1.5"></i>Sadece Hatalarımı Çöz
+                </button>
+                <button onclick="closeExamResultModal()" class="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs sm:text-sm font-semibold transition">
+                    Soruları İncelemeye Dön
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- APPLICATION SCRIPT -->
+    <script>
+        // ============================================================================
+        // COMPLETE 48 QUESTIONS DATA BANK (100% VERBATIM FROM SINAV1, SINAV2 & KAHOOT)
+        // ============================================================================
+        const QUESTIONS_DB = [
+            // --- KATEGORİ 1: SINAV 1 (Çoktan Seçmeli Değerlendirme Sınavı - 10 Soru) ---
+            {
+                id: 1,
+                category: "SINAV1",
+                categoryTitle: "Değerlendirme Sınavı",
+                sourceLabel: "Sınav 1 • Soru 1",
+                question: "Fiziksel büyüklüklerin sensörler aracılığıyla algılanarak sayısal verilere dönüştürüldüğü sistem bileşeni aşağıdakilerden hangisidir?",
+                options: [
+                    "Dijital-Analog Dönüştürücü (DAC)",
+                    "Analog-Dijital Dönüştürücü (ADC)",
+                    "Sinyal Güçlendirici (Amplifier)",
+                    "Darbe Genişlik Modülatörü (PWM)"
+                ],
+                correctIndex: 1,
+                tip: "Sensörlerden gelen fiziksel/analog sinyali bilgisayarın anlayacağı sayısal (dijital) veriye dönüştüren birim ADC (Analog-Dijital Dönüştürücü)'dir."
+            },
+            {
+                id: 2,
+                category: "SINAV1",
+                categoryTitle: "Değerlendirme Sınavı",
+                sourceLabel: "Sınav 1 • Soru 2",
+                question: "LabVIEW programlama ortamının temel aldığı programlama paradigması aşağıdakilerden hangisidir?",
+                options: [
+                    "Nesne Yönelimli Programlama",
+                    "Veri Akışı (Dataflow) Paradigması",
+                    "Metin Tabanlı Kodlama",
+                    "Olay Tabanlı Senkron Programlama"
+                ],
+                correctIndex: 1,
+                tip: "LabVIEW, Veri Akışı (Dataflow) paradigmasını temel alır: Bir düğümün (node) çalışabilmesi için tüm giriş terminallerine veri gelmiş olması gerekir."
+            },
+            {
+                id: 3,
+                category: "SINAV1",
+                categoryTitle: "Değerlendirme Sınavı",
+                sourceLabel: "Sınav 1 • Soru 3",
+                question: "LabVIEW blok diyagramında ondalıklı sayısal (Double Precision Floating-Point) veri taşıyan bir kablonun standart rengi aşağıdakilerden hangisidir?",
+                options: [
+                    "Mavi",
+                    "Yeşil",
+                    "Turuncu",
+                    "Sarı"
+                ],
+                correctIndex: 2,
+                tip: "Kablo renk şifresi: Turuncu = Ondalıklı Sayı (Double/Float), Mavi = Tamsayı (Integer), Yeşil = Mantıksal (Boolean), Pembe = Metin (String)."
+            },
+            {
+                id: 4,
+                category: "SINAV1",
+                categoryTitle: "Değerlendirme Sınavı",
+                sourceLabel: "Sınav 1 • Soru 4",
+                question: "LabVIEW döngü yapılarından biri olan \"For Loop\" ile ilgili aşağıdaki ifadelerden hangisi yanlıştır?",
+                options: [
+                    "Çalışma sayısı N terminali ile belirlenir.",
+                    "İterasyon terminali (i) 0'dan başlar.",
+                    "Koşul sağlandığı sürece belirsiz sayıda çalışmaya devam eder.",
+                    "Otomatik indeksleme (Auto-indexing) özelliğini destekler."
+                ],
+                correctIndex: 2,
+                tip: "Koşul sağlandığı sürece belirsiz sayıda çalışan döngü 'While Loop'tur. For Loop ise N terminaline girilen sayı kadar belirli sayıda çalışır."
+            },
+            {
+                id: 5,
+                category: "SINAV1",
+                categoryTitle: "Değerlendirme Sınavı",
+                sourceLabel: "Sınav 1 • Soru 5",
+                question: "LabVIEW'de birden fazla alt diyagram arasından seçici terminale bağlanan değere göre yalnızca birinin çalışmasını sağlayan yapı aşağıdakilerden hangisidir?",
+                options: [
+                    "Case Structure",
+                    "Sequence Structure",
+                    "Event Structure",
+                    "Formula Node"
+                ],
+                correctIndex: 0,
+                tip: "Seçici terminale (?) gelen Boolean, sayı veya metin değerine göre (if-else / switch-case gibi) tek bir alt diyagramı çalıştıran yapı Case Structure'dır."
+            },
+            {
+                id: 6,
+                category: "SINAV1",
+                categoryTitle: "Değerlendirme Sınavı",
+                sourceLabel: "Sınav 1 • Soru 6",
+                question: "Aynı blok diyagram üzerinde bulunan bir kontrol veya göstergenin değerine, asıl terminaline kablo çekmeden başka bir noktadan okuma/yazma imkânı sağlayan düğüm hangisidir?",
+                options: [
+                    "Global Variable",
+                    "Local Variable",
+                    "Property Node",
+                    "Invoke Node"
+                ],
+                correctIndex: 1,
+                tip: "AYNI blok diyagram üzerinde kablo çekmeden veri okuma/yazma = Local Variable (Yerel Değişken). Farklı VI'lar arasında paylaşım ise Global Variable'dır."
+            },
+            {
+                id: 7,
+                category: "SINAV1",
+                categoryTitle: "Değerlendirme Sınavı",
+                sourceLabel: "Sınav 1 • Soru 7",
+                question: "LabVIEW'de matematiksel adımları ve C benzeri sözdizimini (noktalı virgül, çoklu denklem tanımı) destekleyen özel yapı aşağıdakilerden hangisidir?",
+                options: [
+                    "MathScript Node",
+                    "Formula Express VI",
+                    "Formula Node",
+                    "Expression Node"
+                ],
+                correctIndex: 2,
+                tip: "Blok diyagramda C benzeri metin tabanlı matematiksel denklemler (sonunda noktalı virgül ';' kullanılan) yazmayı sağlayan yapı Formula Node'dur."
+            },
+            {
+                id: 8,
+                category: "SINAV1",
+                categoryTitle: "Değerlendirme Sınavı",
+                sourceLabel: "Sınav 1 • Soru 8",
+                question: "Veri toplama (DAQ) sistemlerinde sensörlerin ve uç cihazların sınırlı kaynaklara (işlemci gücü, pil vb.) sahip olması aşağıdaki zorluklardan hangisini doğurur?",
+                options: [
+                    "Güçlü şifreleme algoritmalarının doğrudan uygulanmasını zorlaştırır.",
+                    "Sensör çözünürlüğünü sıfıra indirir.",
+                    "Dijital sinyallerin anında bozulmasına yol açar.",
+                    "Kablolu iletişimi imkânsız kılar."
+                ],
+                correctIndex: 0,
+                tip: "Uç cihazların düşük işlemci ve pil gücü, yüksek işlem yükü gerektiren güçlü şifreleme (kriptografi) algoritmalarının doğrudan uygulanmasını zorlaştırır."
+            },
+            {
+                id: 9,
+                category: "SINAV1",
+                categoryTitle: "Değerlendirme Sınavı",
+                sourceLabel: "Sınav 1 • Soru 9",
+                question: "LabVIEW blok diyagramında kod bloklarının yürütülme sırasını soldan sağa doğru kesin olarak belirlemek için kullanılan yapı aşağıdakilerden hangisidir?",
+                options: [
+                    "Flat Sequence Structure",
+                    "Conditional Structure",
+                    "While Loop",
+                    "Timed Loop"
+                ],
+                correctIndex: 0,
+                tip: "Film şeridi görünümünde olan ve çerçeveleri soldan sağa doğru sırayla çalıştıran yapı Flat Sequence Structure'dır."
+            },
+            {
+                id: 10,
+                category: "SINAV1",
+                categoryTitle: "Değerlendirme Sınavı",
+                sourceLabel: "Sınav 1 • Soru 10",
+                question: "LabVIEW'de çalışan bir programın adımlarını ve veri akışını ampul ikonu ile yavaşlatıp animasyon olarak izlemeyi sağlayan araç hangisidir?",
+                options: [
+                    "Step Into",
+                    "Highlight Execution",
+                    "Probe Tool",
+                    "Breakpoint"
+                ],
+                correctIndex: 1,
+                tip: "Blok diyagram araç çubuğundaki Ampul ikonu = Highlight Execution (Veri akışını kablolar üzerinde hareket eden kabarcıklar halinde yavaşlatarak izletir)."
+            },
+
+            // --- KATEGORİ 2: TEST 1 (Temel Ölçme, Sensörler ve ADC/DAC İlkeleri - 10 Soru) ---
+            {
+                id: 11,
+                category: "TEST1",
+                categoryTitle: "Test 1: Sensörler ve ADC/DAC",
+                sourceLabel: "Test 1 • Soru 1",
+                question: "Fiziksel bir büyüklüğü (sıcaklık, basınç, ışık vb.) elektrik sinyaline dönüştüren elemanlara ne ad verilir?",
+                options: [
+                    "Dönüştürücü (Transdüser/Sensör)",
+                    "Aktüatör",
+                    "Osilatör",
+                    "Komplemantör"
+                ],
+                correctIndex: 0,
+                tip: "Fiziksel büyüklüğü (sıcaklık, basınç, ışık) elektrik sinyaline çeviren elemanlara Dönüştürücü (Transdüser / Sensör) denir."
+            },
+            {
+                id: 12,
+                category: "TEST1",
+                categoryTitle: "Test 1: Sensörler ve ADC/DAC",
+                sourceLabel: "Test 1 • Soru 2",
+                question: "12-bit çözünürlüğe sahip bir ADC'nin 0-10V giriş aralığındaki adım büyüklüğü (çözünürlüğü) yaklaşık kaç mV'dur?",
+                options: [
+                    "1.22 mV",
+                    "2.44 mV",
+                    "4.88 mV",
+                    "9.76 mV"
+                ],
+                correctIndex: 1,
+                tip: "Hesaplama: Adım Büyüklüğü = Giriş Aralığı / 2^n = 10V / 2^12 = 10.000 mV / 4096 = 2.44 mV."
+            },
+            {
+                id: 13,
+                category: "TEST1",
+                categoryTitle: "Test 1: Sensörler ve ADC/DAC",
+                sourceLabel: "Test 1 • Soru 3",
+                question: "Nyquist Örnekleme Teoremi'ne göre, 5 kHz frekansındaki bir sinyali örtüşme (aliasing) olmadan dijitalleştirmek için minimum örnekleme frekansı ne olmalıdır?",
+                options: [
+                    "2.5 kHz",
+                    "5 kHz",
+                    "10 kHz",
+                    "20 kHz"
+                ],
+                correctIndex: 2,
+                tip: "Nyquist Teoremine göre örnekleme frekansı sinyal frekansının EN AZ 2 KATI olmalıdır: 2 × 5 kHz = 10 kHz."
+            },
+            {
+                id: 14,
+                category: "TEST1",
+                categoryTitle: "Test 1: Sensörler ve ADC/DAC",
+                sourceLabel: "Test 1 • Soru 4",
+                question: "Örnekleme sırasında yüksek frekanslı gürültülerin düşük frekanslı sinyal gibi algılanmasını önlemek için kullanılan filtre hangisidir?",
+                options: [
+                    "Yüksek Geçiren Filtre",
+                    "Örtüşme Önleyici (Anti-Aliasing) Filtre",
+                    "Bant Geçiren Filtre",
+                    "Çentik (Notch) Filtre"
+                ],
+                correctIndex: 1,
+                tip: "Yüksek frekanslı bileşenlerin düşük frekanslı sahte sinyaller (aliasing/örtüşme) oluşturmasını önleyen filtre Örtüşme Önleyici (Anti-Aliasing) Filtredir."
+            },
+            {
+                id: 15,
+                category: "TEST1",
+                categoryTitle: "Test 1: Sensörler ve ADC/DAC",
+                sourceLabel: "Test 1 • Soru 5",
+                question: "Sürekli analog bir sinyalin belirli zaman aralıklarında genlik değerlerinin alınıp sayısal seviyelere yuvarlanması işlemine ne ad verilir?",
+                options: [
+                    "Modülasyon",
+                    "Kuantalama (Quantization)",
+                    "Demodülasyon",
+                    "Multiplexing"
+                ],
+                correctIndex: 1,
+                tip: "Analog genlik değerlerinin belirli sayısal basamak/seviyelere yuvarlanması işlemine Kuantalama (Quantization) denir."
+            },
+            {
+                id: 16,
+                category: "TEST1",
+                categoryTitle: "Test 1: Sensörler ve ADC/DAC",
+                sourceLabel: "Test 1 • Soru 6",
+                question: "Sıcaklık arttıkça direnci azalan yarı iletken bazlı sıcaklık sensörü aşağıdakilerden hangisidir?",
+                options: [
+                    "PTC Termistör",
+                    "NTC Termistör",
+                    "Pt100 RTD",
+                    "K-Tipi Termokupl"
+                ],
+                correctIndex: 1,
+                tip: "NTC (Negative Temperature Coefficient): Sıcaklık arttıkça direnci AZALAN termistördür. (PTC'de ise sıcaklık arttıkça direnç artar)."
+            },
+            {
+                id: 17,
+                category: "TEST1",
+                categoryTitle: "Test 1: Sensörler ve ADC/DAC",
+                sourceLabel: "Test 1 • Soru 7",
+                question: "İki farklı metalin birleşme noktasındaki sıcaklık farkından dolayı voltaj üreten (Seebeck etkisi) sensör türü hangisidir?",
+                options: [
+                    "Termokupl (Isılçift)",
+                    "RTD",
+                    "Strain Gauge",
+                    "LVDT"
+                ],
+                correctIndex: 0,
+                tip: "İki farklı metal + Seebeck etkisi + Sıcaklık farkıyla mV seviyesinde voltaj üretme = Termokupl (Isılçift)."
+            },
+            {
+                id: 18,
+                category: "TEST1",
+                categoryTitle: "Test 1: Sensörler ve ADC/DAC",
+                sourceLabel: "Test 1 • Soru 8",
+                question: "Bir ADC'nin bit sayısı 8'den 16'ya çıkarıldığında kuantalama seviye sayısı nasıl değişir?",
+                options: [
+                    "2 katına çıkar",
+                    "8 katına çıkar",
+                    "256 katına çıkar",
+                    "Değişmez"
+                ],
+                correctIndex: 2,
+                tip: "8-bit = 2^8 (256 seviye), 16-bit = 2^16 (65.536 seviye). Oran: 2^16 / 2^8 = 2^8 = 256 katına çıkar!"
+            },
+            {
+                id: 19,
+                category: "TEST1",
+                categoryTitle: "Test 1: Sensörler ve ADC/DAC",
+                sourceLabel: "Test 1 • Soru 9",
+                question: "Ölçülen büyüklük ile sensör çıkışı arasındaki ilişkinin doğrusallıktan sapma miktarına ne ad verilir?",
+                options: [
+                    "Duyarlılık (Sensitivity)",
+                    "Lineer Olmayan Hata (Non-linearity)",
+                    "Histerezis",
+                    "Çözünürlük"
+                ],
+                correctIndex: 1,
+                tip: "İdeal doğru (lineer) grafiğinden sapma miktarına Lineer Olmayan Hata (Non-linearity) denir."
+            },
+            {
+                id: 20,
+                category: "TEST1",
+                categoryTitle: "Test 1: Sensörler ve ADC/DAC",
+                sourceLabel: "Test 1 • Soru 10",
+                question: "Fiziksel şekildeki mekanik genleşme veya sıkışmayı direnç değişimine dönüştüren sensör elemanı hangisidir?",
+                options: [
+                    "Strain Gauge (Şekil Değiştirme Pulu)",
+                    "Piezoelektrik Kristal",
+                    "Fotodiyot",
+                    "Enkoder"
+                ],
+                correctIndex: 0,
+                tip: "Mekanik uzama, esneme veya sıkışmayı (gerinim/strain) elektriksel direnç değişimine çeviren sensör Strain Gauge (Şekil Değiştirme Pulu)'dur."
+            },
+
+            // --- KATEGORİ 3: TEST 2 (LabVIEW Programlama Mimarisi ve Veri Akışı - 10 Soru) ---
+            {
+                id: 21,
+                category: "TEST2",
+                categoryTitle: "Test 2: LabVIEW Mimarisi",
+                sourceLabel: "Test 2 • Soru 1",
+                question: "LabVIEW programında kullanıcı arayüzünün (butonlar, grafikler vb.) tasarlandığı pencere hangisidir?",
+                options: [
+                    "Block Diagram",
+                    "Front Panel",
+                    "Project Explorer",
+                    "Connector Pane"
+                ],
+                correctIndex: 1,
+                tip: "Kullanıcı arayüzü (butonlar, kontroller, grafikler) = Front Panel (Ön Panel). Grafiksel kodların olduğu pencere = Block Diagram."
+            },
+            {
+                id: 22,
+                category: "TEST2",
+                categoryTitle: "Test 2: LabVIEW Mimarisi",
+                sourceLabel: "Test 2 • Soru 2",
+                question: "LabVIEW'de tamsayı (Integer) veri tipini temsil eden kablo rengi aşağıdakilerden hangisidir?",
+                options: [
+                    "Yeşil",
+                    "Turuncu",
+                    "Mavi",
+                    "Pembe"
+                ],
+                correctIndex: 2,
+                tip: "Tamsayı (Integer) = Mavi kablo. (Ondalıklı = Turuncu, Boolean = Yeşil, String = Pembe)."
+            },
+            {
+                id: 23,
+                category: "TEST2",
+                categoryTitle: "Test 2: LabVIEW Mimarisi",
+                sourceLabel: "Test 2 • Soru 3",
+                question: "LabVIEW döngülerinde (Loop) bir önceki iterasyondaki veriyi bir sonraki iterasyona aktarmak için kullanılan yapı nedir?",
+                options: [
+                    "Shift Register",
+                    "Auto-Indexing Tunnel",
+                    "Event Terminal",
+                    "Feedback Node"
+                ],
+                correctIndex: 0,
+                tip: "Döngü duvarlarına eklenen ve bir önceki döngü adımındaki (iterasyondaki) değeri bir sonraki adıma aktaran yapı Shift Register'dır."
+            },
+            {
+                id: 24,
+                category: "TEST2",
+                categoryTitle: "Test 2: LabVIEW Mimarisi",
+                sourceLabel: "Test 2 • Soru 4",
+                question: "LabVIEW'de bir alt programın (SubVI) ana programa dahil edilebilmesi için Front Panel üzerinde yapılması gereken tanımlama nedir?",
+                options: [
+                    "Icon and Connector Pane Tanımlaması",
+                    "Local Variable Oluşturma",
+                    "Shared Variable Tanımlama",
+                    "Control Palette Düzenleme"
+                ],
+                correctIndex: 0,
+                tip: "Bir VI'ı başka bir VI içinde SubVI (alt program) olarak çağırabilmek için giriş/çıkış uçlarının bağlandığı Icon and Connector Pane tanımlaması yapılmalıdır."
+            },
+            {
+                id: 25,
+                category: "TEST2",
+                categoryTitle: "Test 2: LabVIEW Mimarisi",
+                sourceLabel: "Test 2 • Soru 5",
+                question: "Kullanıcının bir butona tıklaması veya bir kontrolü değiştirmesi gibi olayları işlemciyi yormadan bekleyen yapı hangisidir?",
+                options: [
+                    "Sequence Structure",
+                    "Event Structure",
+                    "Timed Loop",
+                    "Formula Node"
+                ],
+                correctIndex: 1,
+                tip: "Kullanıcı arayüzü olaylarını (butona basılması, değer değişimi vb.) işlemciyi (CPU) sürekli meşgul etmeden dinleyen yapı Event Structure'dır."
+            },
+            {
+                id: 26,
+                category: "TEST2",
+                categoryTitle: "Test 2: LabVIEW Mimarisi",
+                sourceLabel: "Test 2 • Soru 6",
+                question: "LabVIEW'de mantıksal (Boolean) veri tipini temsil eden kablo rengi aşağıdakilerden hangisidir?",
+                options: [
+                    "Sarı",
+                    "Yeşil",
+                    "Turuncu",
+                    "Mavi"
+                ],
+                correctIndex: 1,
+                tip: "Mantıksal (Boolean: True/False) veri tipinin standart kablo rengi Yeşil'dir."
+            },
+            {
+                id: 27,
+                category: "TEST2",
+                categoryTitle: "Test 2: LabVIEW Mimarisi",
+                sourceLabel: "Test 2 • Soru 7",
+                question: "Aşağıdaki durumlardan hangisinde LabVIEW'de bir Race Condition (Yarış Durumu) hatası oluşma riski en yüksektir?",
+                options: [
+                    "Shift Register kullanımında",
+                    "Paralel çalışan döngülerde aynı Local Variable'a yazma yapıldığında",
+                    "SubVI kullanımında",
+                    "Flat Sequence kullandığında"
+                ],
+                correctIndex: 1,
+                tip: "Paralel çalışan döngülerde aynı anda aynı Local Variable'a yazma yapıldığında hangi döngünün önce yazacağı belirsiz olduğu için Race Condition (Yarış Durumu) oluşur."
+            },
+            {
+                id: 28,
+                category: "TEST2",
+                categoryTitle: "Test 2: LabVIEW Mimarisi",
+                sourceLabel: "Test 2 • Soru 8",
+                question: "LabVIEW'de diziler (Array) ile ilgili For Loop döngüsü kullanıldığında tünelin varsayılan davranışı nedir?",
+                options: [
+                    "Otomatik İndeksleme (Auto-Indexing) Açık",
+                    "Otomatik İndeksleme Kapalı",
+                    "Shift Register Modu",
+                    "Son Değeri Saklama"
+                ],
+                correctIndex: 0,
+                tip: "For Loop'a bir dizi bağlandığında veya döngüden çıkıldığında tünelde Otomatik İndeksleme (Auto-Indexing) varsayılan olarak AÇIKTIR."
+            },
+            {
+                id: 29,
+                category: "TEST2",
+                categoryTitle: "Test 2: LabVIEW Mimarisi",
+                sourceLabel: "Test 2 • Soru 9",
+                question: "LabVIEW ortamında farklı veri tiplerini (String, Number, Boolean vb.) tek bir pakette birleştiren yapı hangisidir?",
+                options: [
+                    "Array (Dizi)",
+                    "Cluster (Demet)",
+                    "Matrix",
+                    "Enum"
+                ],
+                correctIndex: 1,
+                tip: "FARKLI veri tiplerini (String, Sayı, Boolean) tek bir kablo/paket içinde gruplayan yapı Cluster (Demet)'tir. (Array ise sadece AYNI veri tiplerini tutar)."
+            },
+            {
+                id: 30,
+                category: "TEST2",
+                categoryTitle: "Test 2: LabVIEW Mimarisi",
+                sourceLabel: "Test 2 • Soru 10",
+                question: "Kırık çalıştırma oku (Broken Run Arrow) LabVIEW'de neyi ifade eder?",
+                options: [
+                    "Programın başarıyla bittiğini",
+                    "Kodda derleme hatası (kopuk kablo vb.) olduğunu",
+                    "Programın arka planda çalıştığını",
+                    "SubVI'ın eksik olduğunu"
+                ],
+                correctIndex: 1,
+                tip: "Kırık Çalıştırma Oku (Broken Run Arrow), kodda kopuk kablo, uyumsuz veri tipi veya boş bırakılmış zorunlu giriş gibi bir derleme hatası olduğunu ifade eder."
+            },
+
+            // --- KATEGORİ 4: TEST 3 (Veri Toplama Kartları (DAQ) ve Sinyal Koşullama - 10 Soru) ---
+            {
+                id: 31,
+                category: "TEST3",
+                categoryTitle: "Test 3: DAQ ve Sinyal Koşullama",
+                sourceLabel: "Test 3 • Soru 1",
+                question: "Veri toplama kartlarında (DAQ) zayıf sensör sinyallerini ADC'nin dinamik aralığına uygun seviyeye getiren işlem hangisidir?",
+                options: [
+                    "Filtreleme",
+                    "Anfi / Güçlendirme (Amplification)",
+                    "İzolasyon",
+                    "Örnekleme"
+                ],
+                correctIndex: 1,
+                tip: "Zayıf (mV seviyesindeki) sensör sinyallerini ADC'nin tam çözünürlükle okuyabileceği seviyeye yükseltme işlemi Anfi / Güçlendirme (Amplification)'dir."
+            },
+            {
+                id: 32,
+                category: "TEST3",
+                categoryTitle: "Test 3: DAQ ve Sinyal Koşullama",
+                sourceLabel: "Test 3 • Soru 2",
+                question: "Yüksek voltaj sıçramalarından veri toplama kartını ve bilgisayarı korumak için uygulanan sinyal koşullama yöntemi hangisidir?",
+                options: [
+                    "Galvanik İzolasyon",
+                    "Lineerleştirme",
+                    "Atenülasyon",
+                    "Akım Uyarımı"
+                ],
+                correctIndex: 0,
+                tip: "Sensör hattındaki yüksek voltaj darbelerinden DAQ kartını ve bilgisayarı korumak ve toprak döngülerini kırmak için Galvanik İzolasyon uygulanır."
+            },
+            {
+                id: 33,
+                category: "TEST3",
+                categoryTitle: "Test 3: DAQ ve Sinyal Koşullama",
+                sourceLabel: "Test 3 • Soru 3",
+                question: "Özellikle uzak mesafeli sanayi ortamlarında gürültüye karşı dirençli olduğu için tercih edilen standart iletim sinyali hangisidir?",
+                options: [
+                    "0-5 V Volt",
+                    "4-20 mA Akım Döngüsü",
+                    "0-10 V Volt",
+                    "TTL Mantık Sinyali"
+                ],
+                correctIndex: 1,
+                tip: "Uzak mesafede kablo direnci voltaj düşümüne yol açar ancak akım sabit kalır. Bu nedenle sanayide gürültüye dayanıklı 4-20 mA Akım Döngüsü tercih edilir."
+            },
+            {
+                id: 34,
+                category: "TEST3",
+                categoryTitle: "Test 3: DAQ ve Sinyal Koşullama",
+                sourceLabel: "Test 3 • Soru 4",
+                question: "DAQ kartlarında birden fazla analog giriş kanalını sırayla tek bir ADC'ye bağlayan anahtarlama elemanı hangisidir?",
+                options: [
+                    "Multiplexer (Çoklayıcı / MUX)",
+                    "Demultiplexer",
+                    "Enkoder",
+                    "Sample & Hold Devresi"
+                ],
+                correctIndex: 0,
+                tip: "Birden fazla analog giriş kanalını sırayla tek bir ADC birimine yönlendiren seçici anahtarlama elemanı Multiplexer (Çoklayıcı / MUX)'tır."
+            },
+            {
+                id: 35,
+                category: "TEST3",
+                categoryTitle: "Test 3: DAQ ve Sinyal Koşullama",
+                sourceLabel: "Test 3 • Soru 5",
+                question: "Ortak mod gürültüsünü (Common-Mode Noise) bastırmak için tercih edilen DAQ giriş bağlantı türü aşağıdakilerden hangisidir?",
+                options: [
+                    "Single-Ended RSE",
+                    "Single-Ended NRSE",
+                    "Differential (Diferansiyel) Giriş",
+                    "Open Collector"
+                ],
+                correctIndex: 2,
+                tip: "Pozitif ve negatif iki sinyal hattı arasındaki farkı alarak her iki kabloya eşit etki eden Ortak Mod Gürültüsünü (Common-Mode Noise) yok eden bağlantı Differential (Diferansiyel) Giriştir."
+            },
+            {
+                id: 36,
+                category: "TEST3",
+                categoryTitle: "Test 3: DAQ ve Sinyal Koşullama",
+                sourceLabel: "Test 3 • Soru 6",
+                question: "LabVIEW ortamında National Instruments DAQ kartlarını kolayca konfigüre edip veri okumak için kullanılan hazır Express VI hangisidir?",
+                options: [
+                    "DAQ Assistant",
+                    "VISA Read",
+                    "Instrument I/O Assistant",
+                    "Serial Port Config"
+                ],
+                correctIndex: 0,
+                tip: "National Instruments (NI) DAQ kartlarını arayüz üzerinden hızlıca yapılandırmayı sağlayan hazır Express VI = DAQ Assistant."
+            },
+            {
+                id: 37,
+                category: "TEST3",
+                categoryTitle: "Test 3: DAQ ve Sinyal Koşullama",
+                sourceLabel: "Test 3 • Soru 7",
+                question: "Sürekli ve yüksek hızlı veri toplama uygulamalarında veri kaybını önlemek için bellek üzerinde kullanılan yapı nedir?",
+                options: [
+                    "Circular Buffer (Halkasal Tampon Bellek)",
+                    "Stack (Yığın)",
+                    "LIFO Bellek",
+                    "Flash Hafıza"
+                ],
+                correctIndex: 0,
+                tip: "Sürekli (continuous) yüksek hızlı veri toplamada bir yandan karta veri yazılıp bir yandan LabVIEW tarafından okunurken veri kaybını önleyen yapı Circular Buffer (Halkasal Tampon Bellek)'tir."
+            },
+            {
+                id: 38,
+                category: "TEST3",
+                categoryTitle: "Test 3: DAQ ve Sinyal Koşullama",
+                sourceLabel: "Test 3 • Soru 8",
+                question: "Strain gauge veya RTD gibi pasif sensörlerin çalışabilmesi için dışarıdan sağlanan gerilim/akım desteğine ne ad verilir?",
+                options: [
+                    "İzolasyon (Isolation)",
+                    "Uyarma / Eksitasyon (Excitation)",
+                    "Filtreleme (Filtering)",
+                    "Sönümleme (Damping)"
+                ],
+                correctIndex: 1,
+                tip: "Kendi enerjisini üretemeyen pasif sensörlerin (Strain Gauge, RTD, Termistör) çalışması için dışarıdan verilen besleme gerilim/akımına Uyarma / Eksitasyon (Excitation) denir."
+            },
+            {
+                id: 39,
+                category: "TEST3",
+                categoryTitle: "Test 3: DAQ ve Sinyal Koşullama",
+                sourceLabel: "Test 3 • Soru 9",
+                question: "Veri toplama kartında bir tetikleme (Trigger) sinyali alındığı andan itibaren veri toplamaya başlanması işlemine ne ad verilir?",
+                options: [
+                    "Pre-triggering",
+                    "Start Triggering (Başlangıç Tetiklemesi)",
+                    "Post-triggering",
+                    "Gated Triggering"
+                ],
+                correctIndex: 1,
+                tip: "Belirli bir tetikleme (Trigger) koşulu gerçekleştiği andan itibaren veri toplamayı başlatan yapı Start Triggering (Başlangıç Tetiklemesi)'dir."
+            },
+            {
+                id: 40,
+                category: "TEST3",
+                categoryTitle: "Test 3: DAQ ve Sinyal Koşullama",
+                sourceLabel: "Test 3 • Soru 10",
+                question: "Bir veri toplama kartında yüksek voltajlı bir analog sinyali ADC sınırlarına indirme işlemine ne verilir?",
+                options: [
+                    "Amplifikasyon",
+                    "Atenülasyon (Zayıflatma)",
+                    "İzolasyon",
+                    "Kuantalama"
+                ],
+                correctIndex: 1,
+                tip: "ADC giriş sınırından (örn. ±10V) daha yüksek genlikli sinyalleri gerilim bölücü vb. ile ADC sınırlarına indirme işlemine Atenülasyon (Zayıflatma) denir."
+            },
+
+            // --- KATEGORİ 5: KAHOOT CANLI DERS SORULARI (8 Soru) ---
+            {
+                id: 41,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 1",
+                question: "LabVIEW kısaltmasının açılımı nedir?",
+                options: [
+                    "Laboratory Virtual Instrument Engineering Workbench",
+                    "Laboratory Visual Interface Engineering Workshop",
+                    "Linear Analog Virtual Instrument Environment",
+                    "Logic Automated Virtual Engineering Workbench"
+                ],
+                correctIndex: 0,
+                tip: "LabVIEW = Laboratory Virtual Instrument Engineering Workbench (Laboratuvar Sanal Enstrüman Mühendislik Çalışma Tezgahı)."
+            },
+            {
+                id: 42,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 2",
+                question: "LabVIEW hangi firma tarafından ve hangi yılda piyasaya sürülmüştür?",
+                options: [
+                    "Texas Instruments – 1990",
+                    "National Instruments – 1986",
+                    "MathWorks – 1984",
+                    "Siemens – 1992"
+                ],
+                correctIndex: 1,
+                tip: "LabVIEW, National Instruments (NI) firması tarafından 1986 yılında (ilk olarak Apple Macintosh için) piyasaya sürülmüştür."
+            },
+            {
+                id: 43,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 3",
+                question: "LabVIEW'in dayandığı grafiksel veri akışı programlama dilinin adı nedir?",
+                options: [
+                    "C",
+                    "VHDL",
+                    "G",
+                    "Ladder"
+                ],
+                correctIndex: 2,
+                tip: "LabVIEW'in kullandığı grafiksel veri akışı (graphical dataflow) programlama dilinin adı 'G' dilidir."
+            },
+            {
+                id: 44,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 4",
+                question: "Bir LabVIEW programına ne ad verilir?",
+                options: [
+                    "Sanal Modül (VM)",
+                    "Blok Paket (BP)",
+                    "Görsel Script (VS)",
+                    "Sanal Enstrüman (VI)"
+                ],
+                correctIndex: 3,
+                tip: "LabVIEW programları görünüm ve çalışma açısından gerçek ölçüm aletlerini taklit ettiği için Sanal Enstrüman (Virtual Instrument - VI) olarak adlandırılır."
+            },
+            {
+                id: 45,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 5",
+                question: "Analog sinyali sayısal koda çeviren birim hangisidir?",
+                options: [
+                    "ADC",
+                    "DAC",
+                    "CPU",
+                    "PLC"
+                ],
+                correctIndex: 0,
+                tip: "Analog sinyali sayısal (dijital) koda çeviren birim ADC (Analog-to-Digital Converter)'dir. (Tersini yapan ise DAC'tır)."
+            },
+            {
+                id: 46,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 6",
+                question: "DAQ kısaltması neyi ifade eder?",
+                options: [
+                    "Digital Analog Quantizer",
+                    "Data Acquisition",
+                    "Data Analysis Queue",
+                    "Direct Access Quality"
+                ],
+                correctIndex: 1,
+                tip: "DAQ = Data Acquisition (Veri Toplama)."
+            },
+            {
+                id: 47,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 7",
+                question: "Veri güvenliğinde CIA üçlüsü hangi ilkelerden oluşur?",
+                options: [
+                    "Kontrol, İzleme, Analiz",
+                    "Gizlilik, Kimlik, Arşiv",
+                    "Gizlilik, Bütünlük, Erişilebilirlik",
+                    "Şifreleme, Denetim, Yedekleme"
+                ],
+                correctIndex: 2,
+                tip: "CIA Üçlüsü: Confidentiality (Gizlilik), Integrity (Bütünlük), Availability (Erişilebilirlik)."
+            },
+            {
+                id: 48,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 8",
+                question: "Hangisi veri toplama sistemlerine yönelik bir saldırı türü DEĞİLDİR?",
+                options: [
+                    "Ortadaki adam (MITM)",
+                    "Veri zehirlenmesi",
+                    "Yeniden oynatma (replay)",
+                    "Hafif şifreleme"
+                ],
+                correctIndex: 3,
+                tip: "MITM, Veri zehirlenmesi ve Yeniden oynatma (Replay) birer siber saldırı türüdür. 'Hafif şifreleme (Lightweight Encryption)' ise kaynak kısıtlı sensörleri korumak için kullanılan bir güvenlik önlemidir."
+            }
+        ];
+
+        const CATEGORIES = [
+            { id: "ALL", name: "Tüm Sorular", count: 48, icon: "fa-layer-group" },
+            { id: "SINAV1", name: "Genel Değerlendirme Sınavı", count: 10, icon: "fa-file-Check" },
+            { id: "TEST1", name: "Test 1: Sensörler & ADC/DAC", count: 10, icon: "fa-wave-square" },
+            { id: "TEST2", name: "Test 2: LabVIEW Mimarisi", count: 10, icon: "fa-diagram-project" },
+            { id: "TEST3", name: "Test 3: DAQ & Sinyal Koşullama", count: 10, icon: "fa-Server" },
+            { id: "KAHOOT", name: "Kahoot Canlı Ders Soruları", count: 8, icon: "fa-bolt" },
+            { id: "WRONG", name: "Sadece Hatalarım", count: 0, icon: "fa-triangle-exclamation" },
+            { id: "STARRED", name: "Yıldızlı Sorularım", count: 0, icon: "fa-star" }
+        ];
+
+        // ============================================================================
+        // STATE MANAGEMENT & LOCAL STORAGE PERSISTENCE
+        // ============================================================================
+        const STORAGE_KEY = "dijital_olcme_quiz_state_v1";
+
+        let state = {
+            currentMainTab: "quiz",         // 'quiz' | 'mistakes' | 'study' | 'flashcards'
+            activeCategory: "ALL",          // 'ALL' | 'SINAV1' | 'TEST1' | 'TEST2' | 'TEST3' | 'KAHOOT' | 'WRONG' | 'STARRED'
+            feedbackMode: "instant",        // 'instant' | 'exam'
+            shuffleQuestions: false,
+            shuffleOptions: false,
+            userAnswers: {},                // { questionId: selectedOriginalOptionIndex }
+            wrongPool: [],                  // Array of questionIds that the user got wrong and hasn't cleared yet
+            starredPool: [],                // Array of questionIds starred by user
+            currentQuestionIndex: 0,        // Index inside current filtered Question List
+            activeQuestionIds: [],          // Ordered array of question IDs for current filter
+            optionOrderMap: {},             // { questionId: [0, 1, 2, 3] } for shuffled options
+            hideStudyAnswers: false,        // Toggle inside Study Table
+            flashcardList: [],
+            flashcardIndex: 0,
+            flashcardFlipped: false
+        };
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    state.userAnswers = parsed.userAnswers || {};
+                    state.wrongPool = parsed.wrongPool || [];
+                    state.starredPool = parsed.starredPool || [];
+                    state.feedbackMode = parsed.feedbackMode || "instant";
+                }
+            } catch (e) {
+                console.error("LocalStorage okuma hatası:", e);
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    userAnswers: state.userAnswers,
+                    wrongPool: state.wrongPool,
+                    starredPool: state.starredPool,
+                    feedbackMode: state.feedbackMode
+                }));
+            } catch (e) {
+                console.error("LocalStorage kaydetme hatası:", e);
+            }
+        }
+
+        // ============================================================================
+        // INITIALIZATION & FILTERING
+        // ============================================================================
+        function initApp() {
+            loadState();
+            generateOptionOrders();
+            setFeedbackMode(state.feedbackMode, false);
+            applyCategoryFilter("ALL");
+            updateGlobalStats();
+            initFlashcards();
+            renderStudyView();
+        }
+
+        function generateOptionOrders() {
+            QUESTIONS_DB.forEach(q => {
+                if (state.shuffleOptions) {
+                    const arr = [0, 1, 2, 3];
+                    for (let i = arr.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [arr[i], arr[j]] = [arr[j], arr[i]];
+                    }
+                    state.optionOrderMap[q.id] = arr;
+                } else {
+                    state.optionOrderMap[q.id] = [0, 1, 2, 3];
+                }
+            });
+        }
+
+        function getQuestionsForCategory(catId) {
+            let list = [];
+            if (catId === "ALL") {
+                list = QUESTIONS_DB.map(q => q.id);
+            } else if (catId === "WRONG") {
+                list = [...state.wrongPool];
+            } else if (catId === "STARRED") {
+                list = [...state.starredPool];
+            } else {
+                list = QUESTIONS_DB.filter(q => q.category === catId).map(q => q.id);
+            }
+
+            if (state.shuffleQuestions) {
+                for (let i = list.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [list[i], list[j]] = [list[j], list[i]];
+                }
+            }
+            return list;
+        }
+
+        function applyCategoryFilter(catId) {
+            state.activeCategory = catId;
+            state.activeQuestionIds = getQuestionsForCategory(catId);
+            state.currentQuestionIndex = 0;
+            renderCategoryPills();
+            renderCurrentQuestion();
+            renderQuestionPalette();
+        }
+
+        // ============================================================================
+        // UI RENDERING: CATEGORY PILLS & TOP STATS
+        // ============================================================================
+        function updateGlobalStats() {
+            let answeredCount = 0;
+            let correctCount = 0;
+
+            QUESTIONS_DB.forEach(q => {
+                if (state.userAnswers[q.id] !== undefined) {
+                    answeredCount++;
+                    if (state.userAnswers[q.id] === q.correctIndex) {
+                        correctCount++;
+                    }
+                }
+            });
+
+            const wrongCount = state.wrongPool.length;
+            const starredCount = state.starredPool.length;
+            const percentage = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
+
+            document.getElementById("stat-answered").textContent = answeredCount;
+            document.getElementById("stat-correct").textContent = correctCount;
+            document.getElementById("stat-wrong").textContent = wrongCount;
+            document.getElementById("stat-starred").textContent = starredCount;
+            document.getElementById("stat-percentage").textContent = `%${percentage} Başarı`;
+
+            document.getElementById("tab-badge-wrong").textContent = wrongCount;
+            document.getElementById("palette-wrong-count").textContent = wrongCount;
+
+            const correctWidth = (correctCount / QUESTIONS_DB.length) * 100;
+            const wrongAnsweredCount = answeredCount - correctCount;
+            const wrongWidth = (wrongAnsweredCount / QUESTIONS_DB.length) * 100;
+
+            document.getElementById("progress-bar-correct").style.width = `${correctWidth}%`;
+            document.getElementById("progress-bar-wrong").style.width = `${wrongWidth}%`;
+        }
+
+        function renderCategoryPills() {
+            const container = document.getElementById("category-pills");
+            container.innerHTML = "";
+
+            CATEGORIES.forEach(cat => {
+                let count = cat.count;
+                if (cat.id === "WRONG") count = state.wrongPool.length;
+                if (cat.id === "STARRED") count = state.starredPool.length;
+
+                const isActive = state.activeCategory === cat.id;
+                const btn = document.createElement("button");
+
+                let colorClasses = isActive
+                    ? "bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/25"
+                    : "bg-slate-900/90 hover:bg-slate-800 text-slate-300 border-slate-800";
+
+                if (cat.id === "WRONG" && !isActive) {
+                    colorClasses = "bg-rose-950/30 hover:bg-rose-900/40 text-rose-300 border-rose-800/50";
+                } else if (cat.id === "STARRED" && !isActive) {
+                    colorClasses = "bg-amber-950/30 hover:bg-amber-900/40 text-amber-300 border-amber-800/50";
+                }
+
+                btn.className = `px-3.5 py-2 rounded-xl border text-xs font-semibold whitespace-nowrap transition flex items-center gap-2 ${colorClasses}`;
+                btn.onclick = () => applyCategoryFilter(cat.id);
+                btn.innerHTML = `
+                    <span>${cat.name}</span>
+                    <span class="px-1.5 py-0.5 rounded-md text-[10px] ${isActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'}">${count}</span>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        // ============================================================================
+        // UI RENDERING: ACTIVE QUESTION CARD & OPTIONS
+        // ============================================================================
+        function renderCurrentQuestion() {
+            const cardContainer = document.getElementById("question-card-container");
+
+            if (state.activeQuestionIds.length === 0) {
+                document.getElementById("q-number-badge").textContent = "Soru Yok";
+                document.getElementById("q-category-badge").textContent = state.activeCategory === "WRONG" ? "Hatalarım Havuzu" : "Yıldızlı Sorular";
+                document.getElementById("q-status-badge").classList.add("hidden");
+                document.getElementById("q-text").innerHTML = state.activeCategory === "WRONG"
+                    ? `<div class="text-center py-8 space-y-3">
+                        <div class="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto text-2xl">
+                            <i class="fa-solid fa-check-double"></i>
+                        </div>
+                        <div class="text-lg font-bold text-white">Harika! Hata yaptığınız soru bulunmuyor.</div>
+                        <p class="text-sm text-slate-400 font-normal">Test çözerken yanlış yaptığınız sorular otomatik olarak buraya eklenecektir.</p>
+                        <button onclick="applyCategoryFilter('ALL')" class="mt-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold">Tüm Sorulara Dön</button>
+                       </div>`
+                    : `<div class="text-center py-8 space-y-3">
+                        <div class="w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto text-2xl">
+                            <i class="fa-regular fa-star"></i>
+                        </div>
+                        <div class="text-lg font-bold text-white">Henüz yıldızladığınız bir soru yok.</div>
+                        <p class="text-sm text-slate-400 font-normal">Zorlandığınız soruların sağ üstündeki "Yıldızla" butonuna tıklayarak buraya ekleyebilirsiniz.</p>
+                        <button onclick="applyCategoryFilter('ALL')" class="mt-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold">Tüm Sorulara Dön</button>
+                       </div>`;
+                document.getElementById("q-options").innerHTML = "";
+                document.getElementById("q-feedback-box").classList.add("hidden");
+                return;
+            }
+
+            const currentQId = state.activeQuestionIds[state.currentQuestionIndex];
+            const qObj = QUESTIONS_DB.find(q => q.id === currentQId);
+            const userSelected = state.userAnswers[currentQId];
+            const isAnswered = userSelected !== undefined;
+            const isStarred = state.starredPool.includes(currentQId);
+            const isInWrongPool = state.wrongPool.includes(currentQId);
+
+            // Top badges
+            document.getElementById("q-number-badge").textContent = `Soru ${state.currentQuestionIndex + 1} / ${state.activeQuestionIds.length}`;
+            document.getElementById("q-category-badge").textContent = `${qObj.sourceLabel} (${qObj.categoryTitle})`;
+
+            const statusBadge = document.getElementById("q-status-badge");
+            if (isInWrongPool) {
+                statusBadge.className = "px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30";
+                statusBadge.innerHTML = `<i class="fa-solid fa-rotate-left mr-1"></i>Tekrar Listesinde`;
+                statusBadge.classList.remove("hidden");
+            } else if (isAnswered && userSelected === qObj.correctIndex) {
+                statusBadge.className = "px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+                statusBadge.innerHTML = `<i class="fa-solid fa-check mr-1"></i>Doğru Çözüldü`;
+                statusBadge.classList.remove("hidden");
+            } else {
+                statusBadge.classList.add("hidden");
+            }
+
+            // Star Button
+            const starBtn = document.getElementById("btn-star-current");
+            const starIcon = document.getElementById("icon-star-current");
+            const starText = document.getElementById("text-star-current");
+            if (isStarred) {
+                starBtn.className = "px-3 py-1.5 rounded-xl border border-amber-500/50 bg-amber-500/20 text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition";
+                starIcon.className = "fa-solid fa-star text-amber-400";
+                starText.textContent = "Yıldızlı";
+            } else {
+                starBtn.className = "px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800/70 hover:bg-slate-800 text-slate-300 text-xs font-medium flex items-center gap-1.5 transition";
+                starIcon.className = "fa-regular fa-star";
+                starText.textContent = "Yıldızla";
+            }
+
+            // Question Text
+            document.getElementById("q-text").textContent = qObj.question;
+
+            // Render Options
+            const optionsContainer = document.getElementById("q-options");
+            optionsContainer.innerHTML = "";
+            const letters = ["A", "B", "C", "D"];
+            const optionOrder = state.optionOrderMap[currentQId] || [0, 1, 2, 3];
+
+            optionOrder.forEach((originalOptIndex, displayPos) => {
+                const optText = qObj.options[originalOptIndex];
+                const btn = document.createElement("button");
+                const letter = letters[displayPos];
+
+                let btnStyle = "bg-slate-900/90 hover:bg-slate-800/90 border-slate-800 text-slate-200";
+                let badgeStyle = "bg-slate-800 text-slate-300 border border-slate-700";
+                let rightIcon = "";
+
+                if (isAnswered) {
+                    if (state.feedbackMode === "instant") {
+                        if (originalOptIndex === qObj.correctIndex) {
+                            btnStyle = "bg-emerald-950/60 border-emerald-500 text-emerald-100 shadow-lg shadow-emerald-950/50";
+                            badgeStyle = "bg-emerald-500 text-slate-950 font-extrabold";
+                            rightIcon = `<i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>`;
+                        } else if (originalOptIndex === userSelected && userSelected !== qObj.correctIndex) {
+                            btnStyle = "bg-rose-950/60 border-rose-500 text-rose-100";
+                            badgeStyle = "bg-rose-500 text-white font-extrabold";
+                            rightIcon = `<i class="fa-solid fa-circle-xmark text-rose-400 text-lg"></i>`;
+                        } else {
+                            btnStyle = "bg-slate-900/40 border-slate-800/60 text-slate-500 opacity-65";
+                        }
+                    } else {
+                        // Exam mode: only highlight selected option in indigo
+                        if (originalOptIndex === userSelected) {
+                            btnStyle = "bg-indigo-950/80 border-indigo-500 text-white shadow-md";
+                            badgeStyle = "bg-indigo-500 text-white font-bold";
+                            rightIcon = `<i class="fa-solid fa-circle-dot text-indigo-400 text-base"></i>`;
+                        }
+                    }
+                }
+
+                btn.className = `option-btn w-full p-4 rounded-2xl border-2 text-left flex items-center justify-between gap-3 ${btnStyle}`;
+                btn.onclick = () => selectOption(currentQId, originalOptIndex);
+
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3.5">
+                        <span class="w-8 h-8 rounded-xl flex items-center justify-center text-xs sm:text-sm font-bold shrink-0 ${badgeStyle}">
+                            ${letter}
+                        </span>
+                        <span class="text-sm sm:text-base font-medium leading-snug">${optText}</span>
+                    </div>
+                    <div class="shrink-0">${rightIcon}</div>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+
+            // Feedback & Memory Box
+            const feedbackBox = document.getElementById("q-feedback-box");
+            const retryBtn = document.getElementById("btn-retry-single");
+            const removeWrongBtn = document.getElementById("btn-remove-from-wrong");
+
+            if (isAnswered && state.feedbackMode === "instant") {
+                const isCorrect = userSelected === qObj.correctIndex;
+                feedbackBox.classList.remove("hidden");
+                retryBtn.classList.remove("hidden");
+
+                if (isInWrongPool) {
+                    removeWrongBtn.classList.remove("hidden");
+                } else {
+                    removeWrongBtn.classList.add("hidden");
+                }
+
+                const correctDisplayIndex = optionOrder.indexOf(qObj.correctIndex);
+                const correctLetter = letters[correctDisplayIndex];
+
+                if (isCorrect) {
+                    feedbackBox.className = "mt-6 rounded-2xl p-4 sm:p-5 border bg-emerald-950/30 border-emerald-500/40";
+                    document.getElementById("feedback-icon").className = "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-lg bg-emerald-500/20 text-emerald-400";
+                    document.getElementById("feedback-icon").innerHTML = `<i class="fa-solid fa-check"></i>`;
+                    document.getElementById("feedback-title").className = "font-bold text-sm sm:text-base text-emerald-400";
+                    document.getElementById("feedback-title").textContent = "Tebrikler, Doğru Cevap!";
+                } else {
+                    feedbackBox.className = "mt-6 rounded-2xl p-4 sm:p-5 border bg-rose-950/30 border-rose-500/40";
+                    document.getElementById("feedback-icon").className = "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-lg bg-rose-500/20 text-rose-400";
+                    document.getElementById("feedback-icon").innerHTML = `<i class="fa-solid fa-xmark"></i>`;
+                    document.getElementById("feedback-title").className = "font-bold text-sm sm:text-base text-rose-400";
+                    document.getElementById("feedback-title").textContent = "Yanlış Cevap! (Bu soru 'Hatalarım' listesine eklendi)";
+                }
+
+                document.getElementById("feedback-correct-answer").innerHTML = `Doğru Şık: <span class="text-emerald-300 underline decoration-emerald-500/50 underline-offset-4">${correctLetter}) ${qObj.options[qObj.correctIndex]}</span>`;
+                document.getElementById("feedback-explanation").innerHTML = `<strong>Ezber İpucu:</strong> ${qObj.tip}`;
+            } else {
+                feedbackBox.classList.add("hidden");
+                retryBtn.classList.toggle("hidden", !isAnswered);
+            }
+
+            // Navigation Buttons State
+            document.getElementById("btn-prev").disabled = state.currentQuestionIndex === 0;
+            const nextBtn = document.getElementById("btn-next");
+            if (state.currentQuestionIndex === state.activeQuestionIds.length - 1) {
+                nextBtn.innerHTML = `<span>Testi Tamamla</span><i class="fa-solid fa-flag-checkered"></i>`;
+            } else {
+                nextBtn.innerHTML = `<span>Sonraki Soru</span><i class="fa-solid fa-arrow-right"></i>`;
+            }
+
+            document.getElementById("btn-finish-exam").classList.toggle("hidden", state.feedbackMode !== "exam");
+        }
+
+        // ============================================================================
+        // INTERACTION HANDLERS: SELECT OPTION, NEXT/PREV, STAR, MASTERED
+        // ============================================================================
+        function selectOption(questionId, originalOptionIndex) {
+            const qObj = QUESTIONS_DB.find(q => q.id === questionId);
+
+            // In instant mode, if already answered, allow re-clicking only if they press "Tekrar Çöz", OR allow changing directly
+            state.userAnswers[questionId] = originalOptionIndex;
+
+            if (originalOptionIndex !== qObj.correctIndex) {
+                // Add to wrongPool if not already in it
+                if (!state.wrongPool.includes(questionId)) {
+                    state.wrongPool.push(questionId);
+                }
+            } else {
+                // If user solved it inside "WRONG" category and got it right, we still let them see the feedback or remove it via button
+            }
+
+            saveState();
+            updateGlobalStats();
+            renderCategoryPills();
+            renderCurrentQuestion();
+            renderQuestionPalette();
+        }
+
+        function clearCurrentAnswer() {
+            if (state.activeQuestionIds.length === 0) return;
+            const currentQId = state.activeQuestionIds[state.currentQuestionIndex];
+            delete state.userAnswers[currentQId];
+            saveState();
+            updateGlobalStats();
+            renderCurrentQuestion();
+            renderQuestionPalette();
+        }
+
+        function markCurrentAsMastered() {
+            if (state.activeQuestionIds.length === 0) return;
+            const currentQId = state.activeQuestionIds[state.currentQuestionIndex];
+            removeQuestionFromWrongPool(currentQId);
+        }
+
+        function removeQuestionFromWrongPool(qId) {
+            state.wrongPool = state.wrongPool.filter(id => id !== qId);
+            saveState();
+            updateGlobalStats();
+            renderCategoryPills();
+
+            if (state.activeCategory === "WRONG") {
+                state.activeQuestionIds = getQuestionsForCategory("WRONG");
+                if (state.currentQuestionIndex >= state.activeQuestionIds.length) {
+                    state.currentQuestionIndex = Math.max(0, state.activeQuestionIds.length - 1);
+                }
+            }
+            renderCurrentQuestion();
+            renderQuestionPalette();
+            renderMistakesView();
+        }
+
+        function nextQuestion() {
+            if (state.activeQuestionIds.length === 0) return;
+            if (state.currentQuestionIndex < state.activeQuestionIds.length - 1) {
+                state.currentQuestionIndex++;
+                renderCurrentQuestion();
+                renderQuestionPalette();
+            } else {
+                finishExamEvaluation();
+            }
+        }
+
+        function prevQuestion() {
+            if (state.currentQuestionIndex > 0) {
+                state.currentQuestionIndex--;
+                renderCurrentQuestion();
+                renderQuestionPalette();
+            }
+        }
+
+        function jumpToQuestionIndex(idx) {
+            state.currentQuestionIndex = idx;
+            renderCurrentQuestion();
+            renderQuestionPalette();
+        }
+
+        function toggleStarCurrentQuestion() {
+            if (state.activeQuestionIds.length === 0) return;
+            const currentQId = state.activeQuestionIds[state.currentQuestionIndex];
+            toggleStarById(currentQId);
+        }
+
+        function toggleStarById(qId) {
+            if (state.starredPool.includes(qId)) {
+                state.starredPool = state.starredPool.filter(id => id !== qId);
+            } else {
+                state.starredPool.push(qId);
+            }
+            saveState();
+            updateGlobalStats();
+            renderCategoryPills();
+            renderCurrentQuestion();
+            renderQuestionPalette();
+            renderMistakesView();
+            renderStudyView();
+        }
+
+        // ============================================================================
+        // QUESTION PALETTE / NUMBERED NAVIGATOR
+        // ============================================================================
+        function renderQuestionPalette() {
+            const grid = document.getElementById("question-palette-grid");
+            grid.innerHTML = "";
+
+            document.getElementById("palette-summary").textContent = `${state.activeQuestionIds.length} Soru`;
+
+            state.activeQuestionIds.forEach((qId, idx) => {
+                const qObj = QUESTIONS_DB.find(q => q.id === qId);
+                const userAns = state.userAnswers[qId];
+                const isCurrent = idx === state.currentQuestionIndex;
+                const isStarred = state.starredPool.includes(qId);
+
+                const btn = document.createElement("button");
+                let colorClass = "bg-slate-900 text-slate-400 border-slate-800 hover:bg-slate-800";
+
+                if (userAns !== undefined) {
+                    if (state.feedbackMode === "instant") {
+                        if (userAns === qObj.correctIndex) {
+                            colorClass = "bg-emerald-600/30 text-emerald-300 border-emerald-500/50 font-bold";
+                        } else {
+                            colorClass = "bg-rose-600/30 text-rose-300 border-rose-500/50 font-bold";
+                        }
+                    } else {
+                        colorClass = "bg-indigo-600/30 text-indigo-300 border-indigo-500/50 font-bold";
+                    }
+                }
+
+                const activeRing = isCurrent ? "ring-2 ring-indigo-400 ring-offset-2 ring-offset-slate-950 scale-105" : "";
+
+                btn.className = `h-9 rounded-xl border text-xs flex items-center justify-center relative transition ${colorClass} ${activeRing}`;
+                btn.onclick = () => jumpToQuestionIndex(idx);
+                btn.innerHTML = `
+                    <span>${idx + 1}</span>
+                    ${isStarred ? '<span class="w-2 h-2 rounded-full bg-amber-400 absolute -top-0.5 -right-0.5"></span>' : ''}
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+        // ============================================================================
+        // MODES, SHUFFLE & EXAM FINISH
+        // ============================================================================
+        function setFeedbackMode(mode, shouldRender = true) {
+            state.feedbackMode = mode;
+            const instantBtn = document.getElementById("mode-instant-btn");
+            const examBtn = document.getElementById("mode-exam-btn");
+
+            if (mode === "instant") {
+                instantBtn.className = "px-2.5 py-1.5 rounded-lg font-semibold bg-emerald-600 text-white transition shadow";
+                examBtn.className = "px-2.5 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition";
+            } else {
+                examBtn.className = "px-2.5 py-1.5 rounded-lg font-semibold bg-indigo-600 text-white transition shadow";
+                instantBtn.className = "px-2.5 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition";
+            }
+
+            saveState();
+            if (shouldRender) {
+                renderCurrentQuestion();
+                renderQuestionPalette();
+            }
+        }
+
+        function toggleShuffleQuestions() {
+            state.shuffleQuestions = !state.shuffleQuestions;
+            const btn = document.getElementById("btn-shuffle-q");
+            btn.className = state.shuffleQuestions
+                ? "text-xs px-2.5 py-2 rounded-xl border border-indigo-500 bg-indigo-600/20 text-indigo-300 font-semibold transition flex items-center gap-1.5"
+                : "text-xs px-2.5 py-2 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300 transition flex items-center gap-1.5";
+            applyCategoryFilter(state.activeCategory);
+        }
+
+        function toggleShuffleOptions() {
+            state.shuffleOptions = !state.shuffleOptions;
+            const btn = document.getElementById("btn-shuffle-opt");
+            btn.className = state.shuffleOptions
+                ? "text-xs px-2.5 py-2 rounded-xl border border-amber-500 bg-amber-600/20 text-amber-300 font-semibold transition flex items-center gap-1.5"
+                : "text-xs px-2.5 py-2 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300 transition flex items-center gap-1.5";
+            generateOptionOrders();
+            renderCurrentQuestion();
+        }
+
+        function finishExamEvaluation() {
+            // Switch to instant mode so all colors and explanations become visible
+            setFeedbackMode("instant", true);
+
+            let correct = 0;
+            let wrong = 0;
+            state.activeQuestionIds.forEach(qId => {
+                const qObj = QUESTIONS_DB.find(q => q.id === qId);
+                const ans = state.userAnswers[qId];
+                if (ans !== undefined) {
+                    if (ans === qObj.correctIndex) correct++;
+                    else wrong++;
+                }
+            });
+
+            const total = state.activeQuestionIds.length;
+            const score = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+            document.getElementById("exam-result-subtitle").textContent = `Bu gruptaki toplam ${total} sorudan ${correct + wrong} tanesini yanıtladınız.`;
+            document.getElementById("res-correct").textContent = correct;
+            document.getElementById("res-wrong").textContent = wrong;
+            document.getElementById("res-score").textContent = `%${score}`;
+            document.getElementById("btn-modal-solve-wrong").classList.toggle("hidden", state.wrongPool.length === 0);
+
+            document.getElementById("modal-exam-result").classList.remove("hidden");
+        }
+
+        function closeExamResultModal() {
+            document.getElementById("modal-exam-result").classList.add("hidden");
+        }
+
+        function startWrongAnswersQuiz() {
+            switchMainTab("quiz");
+            applyCategoryFilter("WRONG");
+        }
+
+        function startStarredQuiz() {
+            switchMainTab("quiz");
+            applyCategoryFilter("STARRED");
+        }
+
+        // ============================================================================
+        // TAB SWITCHING: QUIZ / MISTAKES / STUDY TABLE / FLASHCARDS
+        // ============================================================================
+        function switchMainTab(tabName) {
+            state.currentMainTab = tabName;
+
+            const views = ["quiz", "mistakes", "study", "flashcards"];
+            views.forEach(v => {
+                document.getElementById(`view-${v}`).classList.toggle("hidden", v !== tabName);
+                const btn = document.getElementById(`tab-btn-${v}`);
+                if (v === tabName) {
+                    btn.className = "flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 bg-indigo-600 text-white shadow";
+                } else {
+                    btn.className = "flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800/60";
+                }
+            });
+
+            document.getElementById("quiz-controls-bar").classList.toggle("hidden", tabName !== "quiz");
+
+            if (tabName === "mistakes") renderMistakesView();
+            if (tabName === "study") renderStudyView();
+            if (tabName === "flashcards") initFlashcards();
+        }
+
+        // ============================================================================
+        // VIEW 2: MISTAKES & STARRED REVIEW LIST
+        // ============================================================================
+        function renderMistakesView() {
+            const container = document.getElementById("mistakes-list-container");
+            container.innerHTML = "";
+
+            const combinedIds = Array.from(new Set([...state.wrongPool, ...state.starredPool]));
+
+            if (combinedIds.length === 0) {
+                container.innerHTML = `
+                    <div class="glass-panel rounded-2xl p-10 text-center space-y-3">
+                        <div class="w-16 h-16 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto text-3xl">
+                            <i class="fa-solid fa-Face-smile-beam"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Hata veya Tekrar Havuzunuz Boş!</h3>
+                        <p class="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
+                            Henüz yanlış yaptığınız veya yıldızladığınız bir soru bulunmuyor. Test çözerken hata yaptığınız sorular otomatik olarak burada listelenir.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            const letters = ["A", "B", "C", "D"];
+
+            combinedIds.forEach(qId => {
+                const qObj = QUESTIONS_DB.find(q => q.id === qId);
+                const isWrong = state.wrongPool.includes(qId);
+                const isStarred = state.starredPool.includes(qId);
+                const userAns = state.userAnswers[qId];
+
+                const card = document.createElement("div");
+                card.className = "glass-panel rounded-2xl p-5 border border-slate-800 space-y-3";
+
+                card.innerHTML = `
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-indigo-300 font-bold text-xs">#${qObj.id} • ${qObj.sourceLabel}</span>
+                            ${isWrong ? '<span class="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold"><i class="fa-solid fa-circle-xmark mr-1"></i>Hatalı Çözüldü</span>' : ''}
+                            ${isStarred ? '<span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold"><i class="fa-solid fa-star mr-1"></i>Yıldızlı</span>' : ''}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            ${isWrong ? `
+                                <button onclick="removeQuestionFromWrongPool(${qObj.id})" class="text-xs px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 font-semibold transition">
+                                    <i class="fa-solid fa-check mr-1"></i>Öğrendim (Hatalardan Çıkar)
+                                </button>
+                            ` : ''}
+                            <button onclick="toggleStarById(${qObj.id})" class="text-xs px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400">
+                                <i class="${isStarred ? 'fa-solid' : 'fa-regular'} fa-star"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <h4 class="text-sm sm:text-base font-bold text-white">${qObj.question}</h4>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                        ${qObj.options.map((opt, idx) => {
+                            const isCorrectOpt = idx === qObj.correctIndex;
+                            const isUserWrongOpt = userAns === idx && !isCorrectOpt;
+                            let cls = "bg-slate-900/70 border-slate-800 text-slate-400";
+                            if (isCorrectOpt) cls = "bg-emerald-950/50 border-emerald-500/60 text-emerald-200 font-semibold";
+                            else if (isUserWrongOpt) cls = "bg-rose-950/40 border-rose-500/50 text-rose-300 line-through";
+                            return `<div class="px-3.5 py-2 rounded-xl border text-xs sm:text-sm flex items-center justify-between ${cls}">
+                                <span><strong>${letters[idx]})</strong> ${opt}</span>
+                                ${isCorrectOpt ? '<i class="fa-solid fa-check text-emerald-400"></i>' : ''}
+                            </div>`;
+                        }).join("")}
+                    </div>
+
+                    <div class="text-xs text-slate-300 bg-slate-900/90 p-3 rounded-xl border border-slate-800 flex items-start gap-2">
+                        <i class="fa-solid fa-lightbulb text-amber-400 mt-0.5"></i>
+                        <span><strong>Ezber Notu:</strong> ${qObj.tip}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // ============================================================================
+        // VIEW 3: HIZLI EZBER TABLOSU (ALL 48 QUESTIONS CHEAT SHEET)
+        // ============================================================================
+        function toggleHideStudyAnswers() {
+            state.hideStudyAnswers = !state.hideStudyAnswers;
+            document.getElementById("icon-study-eye").className = state.hideStudyAnswers ? "fa-solid fa-eye" : "fa-solid fa-eye-slash";
+            document.getElementById("text-study-eye").textContent = state.hideStudyAnswers ? "Cevapları Göster" : "Cevapları Gizle (Kendini Dene)";
+            renderStudyView();
+        }
+
+        function renderStudyView() {
+            const container = document.getElementById("study-list-container");
+            const searchQuery = (document.getElementById("study-search-input")?.value || "").toLowerCase().trim();
+            const catFilter = document.getElementById("study-category-select")?.value || "ALL";
+
+            container.innerHTML = "";
+            const letters = ["A", "B", "C", "D"];
+
+            const filtered = QUESTIONS_DB.filter(q => {
+                const matchesCat = catFilter === "ALL" || q.category === catFilter;
+                const matchesSearch = !searchQuery ||
+                    q.question.toLowerCase().includes(searchQuery) ||
+                    q.options[q.correctIndex].toLowerCase().includes(searchQuery) ||
+                    q.tip.toLowerCase().includes(searchQuery) ||
+                    q.sourceLabel.toLowerCase().includes(searchQuery);
+                return matchesCat && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="glass-panel rounded-2xl p-8 text-center text-slate-400 text-sm">Aramanızla eşleşen soru bulunamadı.</div>`;
+                return;
+            }
+
+            filtered.forEach(q => {
+                const isStarred = state.starredPool.includes(q.id);
+                const card = document.createElement("div");
+                card.className = "glass-panel rounded-2xl p-4 sm:p-5 border border-slate-800/90 hover:border-slate-700 transition";
+
+                const answerBlockId = `study-ans-${q.id}`;
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="space-y-1.5 flex-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 font-bold text-xs">Soru ${q.id}</span>
+                                <span class="text-xs text-slate-400 font-medium">${q.sourceLabel} • ${q.categoryTitle}</span>
+                            </div>
+                            <h3 class="text-sm sm:text-base font-bold text-white leading-snug">${q.question}</h3>
+                        </div>
+                        <button onclick="toggleStarById(${q.id})" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-400 shrink-0" title="Yıldızla">
+                            <i class="${isStarred ? 'fa-solid' : 'fa-regular'} fa-star"></i>
+                        </button>
+                    </div>
+
+                    <div id="${answerBlockId}" class="mt-3 pt-3 border-t border-slate-800/80 ${state.hideStudyAnswers ? 'blur-md select-none cursor-pointer' : ''}" onclick="this.classList.remove('blur-md', 'select-none')">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-emerald-950/35 border border-emerald-500/40 rounded-xl px-3.5 py-2.5">
+                            <div class="text-xs sm:text-sm font-bold text-emerald-300 flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                                <span>Doğru Cevap: ${letters[q.correctIndex]}) ${q.options[q.correctIndex]}</span>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-slate-300 flex items-start gap-2 pl-1">
+                            <i class="fa-solid fa-bolt text-amber-400 mt-0.5"></i>
+                            <span>${q.tip}</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // ============================================================================
+        // VIEW 4: FLASHCARDS LOGIC
+        // ============================================================================
+        function initFlashcards() {
+            const filterVal = document.getElementById("flashcard-filter")?.value || "ALL";
+            let ids = getQuestionsForCategory(filterVal);
+            if (ids.length === 0) ids = QUESTIONS_DB.map(q => q.id);
+
+            state.flashcardList = ids;
+            state.flashcardIndex = 0;
+            state.flashcardFlipped = false;
+            renderFlashcard();
+        }
+
+        function renderFlashcard() {
+            if (state.flashcardList.length === 0) return;
+            const qId = state.flashcardList[state.flashcardIndex];
+            const qObj = QUESTIONS_DB.find(q => q.id === qId);
+            const letters = ["A", "B", "C", "D"];
+
+            document.getElementById("fc-badge").textContent = `Kart ${state.flashcardIndex + 1} / ${state.flashcardList.length} (${qObj.sourceLabel})`;
+            document.getElementById("fc-front-content").textContent = qObj.question;
+            document.getElementById("fc-answer-text").textContent = `${letters[qObj.correctIndex]}) ${qObj.options[qObj.correctIndex]}`;
+            document.getElementById("fc-tip-text").innerHTML = `<i class="fa-solid fa-lightbulb text-amber-400 mr-1.5"></i>${qObj.tip}`;
+
+            const frontEl = document.getElementById("fc-front-content");
+            const backEl = document.getElementById("fc-back-content");
+            const labelEl = document.getElementById("fc-side-label");
+
+            if (state.flashcardFlipped) {
+                frontEl.classList.add("hidden");
+                backEl.classList.remove("hidden");
+                labelEl.textContent = "CEVAP & İPUCU YÜZÜ";
+                labelEl.className = "uppercase tracking-wider font-semibold text-emerald-400";
+            } else {
+                frontEl.classList.remove("hidden");
+                backEl.classList.add("hidden");
+                labelEl.textContent = "SORU YÜZÜ (Tıkla Çevir)";
+                labelEl.className = "uppercase tracking-wider font-semibold text-amber-400";
+            }
+        }
+
+        function flipFlashcard() {
+            state.flashcardFlipped = !state.flashcardFlipped;
+            renderFlashcard();
+        }
+
+        function nextFlashcard() {
+            state.flashcardFlipped = false;
+            state.flashcardIndex = (state.flashcardIndex + 1) % state.flashcardList.length;
+            renderFlashcard();
+        }
+
+        function prevFlashcard() {
+            state.flashcardFlipped = false;
+            state.flashcardIndex = (state.flashcardIndex - 1 + state.flashcardList.length) % state.flashcardList.length;
+            renderFlashcard();
+        }
+
+        // ============================================================================
+        // RESET FUNCTIONS & MODALS
+        // ============================================================================
+        function openResetModal() {
+            document.getElementById("modal-reset").classList.remove("hidden");
+        }
+
+        function closeResetModal() {
+            document.getElementById("modal-reset").classList.add("hidden");
+        }
+
+        function resetCurrentCategoryAnswers() {
+            state.activeQuestionIds.forEach(qId => {
+                delete state.userAnswers[qId];
+            });
+            saveState();
+            updateGlobalStats();
+            renderCurrentQuestion();
+            renderQuestionPalette();
+        }
+
+        function resetOnlySessionAnswers() {
+            state.userAnswers = {};
+            saveState();
+            updateGlobalStats();
+            renderCurrentQuestion();
+            renderQuestionPalette();
+            closeResetModal();
+        }
+
+        function resetEverything() {
+            state.userAnswers = {};
+            state.wrongPool = [];
+            state.starredPool = [];
+            saveState();
+            updateGlobalStats();
+            applyCategoryFilter("ALL");
+            renderMistakesView();
+            renderStudyView();
+            closeResetModal();
+        }
+
+        // ============================================================================
+        // KEYBOARD NAVIGATION SUPPORT
+        // ============================================================================
+        window.addEventListener("keydown", (e) => {
+            if (document.activeElement && document.activeElement.tagName === "INPUT") return;
+
+            if (state.currentMainTab === "quiz" && state.activeQuestionIds.length > 0) {
+                const currentQId = state.activeQuestionIds[state.currentQuestionIndex];
+                const optionOrder = state.optionOrderMap[currentQId] || [0, 1, 2, 3];
+
+                const key = e.key.toUpperCase();
+                if (["1", "A"].includes(key)) {
+                    selectOption(currentQId, optionOrder[0]);
+                } else if (["2", "B"].includes(key)) {
+                    selectOption(currentQId, optionOrder[1]);
+                } else if (["3", "C"].includes(key)) {
+                    selectOption(currentQId, optionOrder[2]);
+                } else if (["4", "D"].includes(key)) {
+                    selectOption(currentQId, optionOrder[3]);
+                } else if (e.key === "ArrowRight") {
+                    nextQuestion();
+                } else if (e.key === "ArrowLeft") {
+                    prevQuestion();
+                } else if (key === "S") {
+                    toggleStarCurrentQuestion();
+                }
+            } else if (state.currentMainTab === "flashcards") {
+                if (e.key === " ") {
+                    e.preventDefault();
+                    flipFlashcard();
+                } else if (e.key === "ArrowRight") {
+                    nextFlashcard();
+                } else if (e.key === "ArrowLeft") {
+                    prevFlashcard();
+                }
+            }
+        });
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
