@@ -87,10 +87,10 @@
                             <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
                                 Dijital Ölçme ve Veri Toplama
                                 <span class="hidden sm:inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                                    48 Tam Soru
+                                    69 Tam Soru
                                 </span>
                             </h1>
-                            <p class="text-xs text-slate-400">Sınav1 + Sınav2 (Test 1-2-3) + Kahoot Canlı Ders Soruları Eksiksiz Set</p>
+                            <p class="text-xs text-slate-400">Sınav 1 (10) + Sınav 2 Test 1-2-3 (30) + Kahoot Soruları (29) • Eksiksiz Set</p>
                         </div>
                     </div>
 
@@ -106,7 +106,7 @@
                         <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
                         <div>
                             <div class="text-[10px] uppercase tracking-wider text-slate-400 font-medium">Çözülen</div>
-                            <div class="text-xs sm:text-sm font-bold text-white"><span id="stat-answered">0</span> / 48</div>
+                            <div class="text-xs sm:text-sm font-bold text-white"><span id="stat-answered">0</span> / 69</div>
                         </div>
                     </div>
 
@@ -170,7 +170,7 @@
                 </button>
                 <button onclick="switchMainTab('study')" id="tab-btn-study" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800/60">
                     <i class="fa-solid fa-book-open text-emerald-400"></i>
-                    <span>Hızlı Ezber Tablosu (48 Soru)</span>
+                    <span>Hızlı Ezber Tablosu (69 Soru)</span>
                 </button>
                 <button onclick="switchMainTab('flashcards')" id="tab-btn-flashcards" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800/60">
                     <i class="fa-solid fa-layer-group text-amber-400"></i>
@@ -223,7 +223,7 @@
                         <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-800">
                             <div class="flex items-center gap-2 flex-wrap">
                                 <span id="q-number-badge" class="px-3 py-1 rounded-lg bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 font-bold text-xs sm:text-sm">
-                                    Soru 1 / 48
+                                    Soru 1 / 69
                                 </span>
                                 <span id="q-category-badge" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-xs font-medium">
                                     Kategori
@@ -312,7 +312,7 @@
                                 <i class="fa-solid fa-table-cells text-indigo-400"></i>
                                 <span>Soru Gezgini</span>
                             </h3>
-                            <span id="palette-summary" class="text-xs text-slate-400">48 Soru</span>
+                            <span id="palette-summary" class="text-xs text-slate-400">69 Soru</span>
                         </div>
 
                         <!-- Legend -->
@@ -382,14 +382,14 @@
             </div>
         </div>
 
-        <!-- ==================== VIEW 3: HIZLI EZBER TABLOSU (ALL 48 QUESTIONS) ==================== -->
+        <!-- ==================== VIEW 3: HIZLI EZBER TABLOSU (ALL 69 QUESTIONS) ==================== -->
         <div id="view-study" class="hidden space-y-5">
             <div class="glass-panel rounded-2xl p-5 sm:p-6">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h2 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
                             <i class="fa-solid fa-bolt text-amber-400"></i>
-                            <span>Hızlı Ezber & Cevap Anahtarı Tablosu (48 Soru)</span>
+                            <span>Hızlı Ezber & Cevap Anahtarı Tablosu (69 Soru)</span>
                         </h2>
                         <p class="text-xs sm:text-sm text-slate-400 mt-1">
                             Sınavdan hemen önce tüm soruları, doğru cevaplarını ve anahtar kelimelerini hızlıca tarayın. Kendinizi denemek için "Cevapları Gizle" modunu açabilirsiniz.
@@ -408,16 +408,16 @@
                 <div class="mt-4 pt-4 border-t border-slate-800 grid grid-cols-1 md:grid-cols-12 gap-3">
                     <div class="md:col-span-7 relative">
                         <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                        <input type="text" id="study-search-input" oninput="renderStudyView()" placeholder="Soru, cevap veya anahtar kelime ara (örn: Nyquist, Kablo rengi, ADC, Termokupl...)" class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                        <input type="text" id="study-search-input" oninput="renderStudyView()" placeholder="Soru, cevap veya anahtar kelime ara (örn: Nyquist, Kablo rengi, ADC, Termokupl, Stuxnet, KVKK...)" class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
                     </div>
                     <div class="md:col-span-5">
                         <select id="study-category-select" onchange="renderStudyView()" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500">
-                            <option value="ALL">Tüm Kategoriler (48 Soru)</option>
+                            <option value="ALL">Tüm Kategoriler (69 Soru)</option>
                             <option value="SINAV1">Genel Değerlendirme Sınavı (10 Soru)</option>
                             <option value="TEST1">Test 1: Temel Ölçme, Sensörler ve ADC/DAC (10 Soru)</option>
                             <option value="TEST2">Test 2: LabVIEW Mimarisi ve Veri Akışı (10 Soru)</option>
                             <option value="TEST3">Test 3: DAQ Kartları ve Sinyal Koşullama (10 Soru)</option>
-                            <option value="KAHOOT">Kahoot Canlı Ders Soruları (8 Soru)</option>
+                            <option value="KAHOOT">Kahoot Canlı Ders Soruları (29 Soru)</option>
                         </select>
                     </div>
                 </div>
@@ -441,14 +441,14 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <select id="flashcard-filter" onchange="initFlashcards()" class="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
-                        <option value="ALL">Tüm Sorular (48)</option>
+                        <option value="ALL">Tüm Sorular (69)</option>
                         <option value="WRONG">Sadece Hatalarım</option>
                         <option value="STARRED">Sadece Yıldızlılar</option>
                         <option value="SINAV1">Değerlendirme Sınavı (10)</option>
                         <option value="TEST1">Test 1: Sensörler & ADC (10)</option>
                         <option value="TEST2">Test 2: LabVIEW Mimari (10)</option>
                         <option value="TEST3">Test 3: DAQ & Sinyal (10)</option>
-                        <option value="KAHOOT">Kahoot Soruları (8)</option>
+                        <option value="KAHOOT">Kahoot Soruları (29)</option>
                     </select>
                 </div>
             </div>
@@ -456,7 +456,7 @@
             <!-- Flashcard Box -->
             <div onclick="flipFlashcard()" class="glass-panel rounded-3xl p-7 sm:p-10 min-h-[320px] flex flex-col justify-between cursor-pointer border-2 border-indigo-500/30 hover:border-indigo-500/60 transition shadow-2xl select-none relative">
                 <div class="flex items-center justify-between text-xs text-slate-400">
-                    <span id="fc-badge" class="px-3 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 font-bold">Kart 1 / 48</span>
+                    <span id="fc-badge" class="px-3 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 font-bold">Kart 1 / 69</span>
                     <span id="fc-side-label" class="uppercase tracking-wider font-semibold text-amber-400">SORU YÜZÜ (Tıkla Çevir)</span>
                 </div>
 
@@ -1168,10 +1168,10 @@
                     "Kuantalama"
                 ],
                 correctIndex: 1,
-                tip: "ADC giriş sınırından (örn. ±10V) daha yüksek genlikli sinyalleri gerilim bölücü vb. ile ADC sınırlarına indirme işlemine Atenülasyon (Zayıflatma) denir."
+                tip: "Yüksek genlikli sinyali gerilim bölücü vb. ile ADC sınırına düşürme işlemi Atenülasyon (Zayıflatma)'dır."
             },
 
-            // --- KATEGORİ 5: KAHOOT CANLI DERS SORULARI (8 Soru) ---
+            // --- KATEGORİ 5: KAHOOT CANLI DERS SORULARI (29 Soru Eksiksiz) ---
             {
                 id: 41,
                 category: "KAHOOT",
@@ -1185,7 +1185,7 @@
                     "Logic Automated Virtual Engineering Workbench"
                 ],
                 correctIndex: 0,
-                tip: "LabVIEW = Laboratory Virtual Instrument Engineering Workbench (Laboratuvar Sanal Enstrüman Mühendislik Çalışma Tezgahı)."
+                tip: "LabVIEW = Laboratory Virtual Instrument Engineering Workbench."
             },
             {
                 id: 42,
@@ -1200,7 +1200,7 @@
                     "Siemens – 1992"
                 ],
                 correctIndex: 1,
-                tip: "LabVIEW, National Instruments (NI) firması tarafından 1986 yılında (ilk olarak Apple Macintosh için) piyasaya sürülmüştür."
+                tip: "LabVIEW, National Instruments (NI) tarafından 1986 yılında piyasaya sürülmüştür."
             },
             {
                 id: 43,
@@ -1215,7 +1215,7 @@
                     "Ladder"
                 ],
                 correctIndex: 2,
-                tip: "LabVIEW'in kullandığı grafiksel veri akışı (graphical dataflow) programlama dilinin adı 'G' dilidir."
+                tip: "LabVIEW'in kullandığı grafiksel veri akışı programlama diline \"G\" (Graphical) dili denir."
             },
             {
                 id: 44,
@@ -1230,7 +1230,7 @@
                     "Sanal Enstrüman (VI)"
                 ],
                 correctIndex: 3,
-                tip: "LabVIEW programları görünüm ve çalışma açısından gerçek ölçüm aletlerini taklit ettiği için Sanal Enstrüman (Virtual Instrument - VI) olarak adlandırılır."
+                tip: "LabVIEW dosyaları (.vi uzantılı) Sanal Enstrüman (Virtual Instrument - VI) olarak adlandırılır."
             },
             {
                 id: 45,
@@ -1245,7 +1245,7 @@
                     "PLC"
                 ],
                 correctIndex: 0,
-                tip: "Analog sinyali sayısal (dijital) koda çeviren birim ADC (Analog-to-Digital Converter)'dir. (Tersini yapan ise DAC'tır)."
+                tip: "Analog-to-Digital Converter (ADC), analog sinyali sayısal koda çevirir."
             },
             {
                 id: 46,
@@ -1275,7 +1275,7 @@
                     "Şifreleme, Denetim, Yedekleme"
                 ],
                 correctIndex: 2,
-                tip: "CIA Üçlüsü: Confidentiality (Gizlilik), Integrity (Bütünlük), Availability (Erişilebilirlik)."
+                tip: "CIA Triad = Confidentiality (Gizlilik), Integrity (Bütünlük), Availability (Erişilebilirlik)."
             },
             {
                 id: 48,
@@ -1290,17 +1290,332 @@
                     "Hafif şifreleme"
                 ],
                 correctIndex: 3,
-                tip: "MITM, Veri zehirlenmesi ve Yeniden oynatma (Replay) birer siber saldırı türüdür. 'Hafif şifreleme (Lightweight Encryption)' ise kaynak kısıtlı sensörleri korumak için kullanılan bir güvenlik önlemidir."
+                tip: "Hafif şifreleme (Lightweight Cryptography) bir saldırı değil, kısıtlı kaynaklı sensörler için bir güvenlik çözümüdür!"
+            },
+            {
+                id: 49,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 9",
+                question: "Endüstriyel kontrol sistemlerini hedef alan tarihsel saldırı örneği hangisidir?",
+                options: [
+                    "Stuxnet",
+                    "WannaCry Lite",
+                    "Heartbeat",
+                    "LabWorm"
+                ],
+                correctIndex: 0,
+                tip: "Stuxnet, SCADA/PLC gibi endüstriyel kontrol sistemlerini (Natanz nükleer tesisi santrifüjlerini) hedef alan ünlü siber saldırıdır."
+            },
+            {
+                id: 50,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 10",
+                question: "Kısıtlı kaynaklı sensörler için literatürde hangi çözüm önerilmektedir?",
+                options: [
+                    "Ağır şifreleme",
+                    "Hafif şifreleme",
+                    "Şifresiz iletim",
+                    "Sadece parola"
+                ],
+                correctIndex: 1,
+                tip: "Düşük işlemci ve pil gücüne sahip IoT/sensör düğümleri için Hafif Şifreleme (Lightweight Cryptography) önerilir."
+            },
+            {
+                id: 51,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 11",
+                question: "Ağdaki hiçbir cihaza varsayılan güven tanımayan güvenlik mimarisi hangisidir?",
+                options: [
+                    "Defense in Depth",
+                    "Open Trust",
+                    "Sıfır Güven (Zero Trust)",
+                    "Perimeter Trust"
+                ],
+                correctIndex: 2,
+                tip: "\"Asla güvenme, her zaman doğrula\" prensibiyle ağ içindeki hiçbir cihaza varsayılan güven tanımayan mimari Sıfır Güven (Zero Trust)'tir."
+            },
+            {
+                id: 52,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 12",
+                question: "Türkiye'de kişisel verilerin korunmasını düzenleyen mevzuat hangisidir?",
+                options: [
+                    "GDPR",
+                    "HIPAA",
+                    "ISO 27001",
+                    "KVKK"
+                ],
+                correctIndex: 3,
+                tip: "Türkiye'de 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) geçerlidir (Avrupa'da GDPR)."
+            },
+            {
+                id: 53,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 13",
+                question: "Front Panel ve Block Diagram'ı yan yana hizalayan kısayol hangisidir?",
+                options: [
+                    "Ctrl + N",
+                    "Ctrl + T",
+                    "Ctrl + E",
+                    "Ctrl + K"
+                ],
+                correctIndex: 1,
+                tip: "Ctrl + T (Tile Left and Right) pencereleri yan yana hizalar. (Ctrl + E pencereler arası geçiş yapar, Ctrl + N yeni VI açar)."
+            },
+            {
+                id: 54,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 14",
+                question: "Run düğmesi kırık ok şeklinde görünüyorsa bu ne anlama gelir?",
+                options: [
+                    "VI çalışıyor",
+                    "VI duraklatıldı",
+                    "VI'da programsal bir hata var",
+                    "VI sürekli modda"
+                ],
+                correctIndex: 2,
+                tip: "Kırık ok (Broken Run Arrow), VI'da derlenmesini engelleyen programsal bir hata olduğunu gösterir."
+            },
+            {
+                id: 55,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 15",
+                question: "Highlight Execution (ampul) açıldığında ne olur?",
+                options: [
+                    "Program hızlanır",
+                    "Kod otomatik düzenlenir",
+                    "Prob eklenir",
+                    "Veri akışı animasyonla gösterilir"
+                ],
+                correctIndex: 3,
+                tip: "Highlight Execution (ampul), kablolar üzerindeki veri akışını yavaşlatarak animasyonla gösterir."
+            },
+            {
+                id: 56,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 16",
+                question: "Kontrol (Control) nesnesi blok diyagramda hangi terminali oluşturur?",
+                options: [
+                    "Giriş terminali",
+                    "Hedef terminali",
+                    "Seçici terminal",
+                    "Koşul terminali"
+                ],
+                correctIndex: 0,
+                tip: "Kontroller (Controls) kullanıcıdan veri aldığı için Blok Diyagramda kalın çerçeveli Giriş (Kaynak) terminali oluşturur."
+            },
+            {
+                id: 57,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 17",
+                question: "Ondalıklı (float) sayısal veri kabloları hangi renkte gösterilir?",
+                options: [
+                    "Mavi",
+                    "Turuncu",
+                    "Yeşil",
+                    "Pembe"
+                ],
+                correctIndex: 1,
+                tip: "Ondalıklı (Floating-point: DBL, SGL) sayısal veri kabloları Turuncu renktedir."
+            },
+            {
+                id: 58,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 18",
+                question: "String (metin) veri tipi hangi renkte gösterilir?",
+                options: [
+                    "Yeşil",
+                    "Mavi",
+                    "Pembe",
+                    "Turkuaz"
+                ],
+                correctIndex: 2,
+                tip: "String (metin) veri kabloları ve terminalleri Pembe renkte gösterilir."
+            },
+            {
+                id: 59,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 19",
+                question: "Farklı veri tiplerini tek yapıda toplayan Cluster, C dilindeki hangi yapıya benzer?",
+                options: [
+                    "array",
+                    "enum",
+                    "pointer",
+                    "struct"
+                ],
+                correctIndex: 3,
+                tip: "Farklı veri tiplerini bir arada tutan Cluster (Demet), C programlama dilindeki \"struct\" (yapı) kavramının karşılığıdır."
+            },
+            {
+                id: 60,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 20",
+                question: "Kapı zili gibi çalışan butonun mekanik eylemi (Mechanical Action) hangisidir?",
+                options: [
+                    "Switch Until Released",
+                    "Switch When Pressed",
+                    "Latch When Released",
+                    "Latch When Pressed"
+                ],
+                correctIndex: 0,
+                tip: "Kapı zili elini basılı tuttuğun sürece çalar, çekince durur = Switch Until Released (Bırakılana kadar anahtarla)."
+            },
+            {
+                id: 61,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 21",
+                question: "Hangisi HATALI bir kablo bağlantısı DEĞİLDİR?",
+                options: [
+                    "Kontrolü kontrole bağlamak",
+                    "Kontrolü göstergeye bağlamak",
+                    "Farklı tipleri birbirine bağlamak",
+                    "Bir hatta birden fazla kaynak bağlamak"
+                ],
+                correctIndex: 1,
+                tip: "Veri akışı Kontrol'den (giriş/kaynak) Gösterge'ye (çıkış/hedef) doğrudur; bu yüzden kontrolü göstergeye bağlamak doğrudur."
+            },
+            {
+                id: 62,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 22",
+                question: "For Loop'ta i (iteration) terminali hangi değerden başlar?",
+                options: [
+                    "1",
+                    "N",
+                    "0",
+                    "-1"
+                ],
+                correctIndex: 2,
+                tip: "Hem For Loop hem While Loop'ta iterasyon (i) terminali her zaman 0'dan başlar."
+            },
+            {
+                id: 63,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 23",
+                question: "N = 10 olan For Loop bittiğinde i'ye bağlı göstergede hangi değer görünür?",
+                options: [
+                    "10",
+                    "11",
+                    "0",
+                    "9"
+                ],
+                correctIndex: 3,
+                tip: "i terminali 0'dan başladığı için N=10 döngüsü i=0, 1, 2, ..., 9 değerlerini üretir ve son turda 9 değerini verir (N-1)."
+            },
+            {
+                id: 64,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 24",
+                question: "Wait (ms) fonksiyonunun zaman birimi nedir?",
+                options: [
+                    "Milisaniye",
+                    "Saniye",
+                    "Mikrosaniye",
+                    "Dakika"
+                ],
+                correctIndex: 0,
+                tip: "Wait (ms) fonksiyonundaki \"ms\" Milisaniye (saniyenin binde biri) anlamına gelir."
+            },
+            {
+                id: 65,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 25",
+                question: "Dış döngü 5, iç döngü 4 kez çalışırsa toplam iterasyon sayısı kaçtır?",
+                options: [
+                    "9",
+                    "20",
+                    "4",
+                    "5"
+                ],
+                correctIndex: 1,
+                tip: "İç içe döngülerde toplam çalışma sayısı döngü sayılarının çarpımıdır: 5 x 4 = 20 kez."
+            },
+            {
+                id: 66,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 26",
+                question: "While Loop koşuldan bağımsız olarak en az kaç kez çalışır?",
+                options: [
+                    "0",
+                    "2",
+                    "1",
+                    "Hiç çalışmayabilir"
+                ],
+                correctIndex: 2,
+                tip: "LabVIEW'de While Loop (C'deki do-while gibi) koşulu tur sonunda kontrol ettiği için en az 1 kez çalışır."
+            },
+            {
+                id: 67,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 27",
+                question: "Stop butonu While Loop'un DIŞINDA olursa ne olur?",
+                options: [
+                    "Her turda okunur",
+                    "VI çalışmaz",
+                    "Döngü hemen durur",
+                    "Bir kez okunur, döngü çalışırken durdurulamaz"
+                ],
+                correctIndex: 3,
+                tip: "Veri akışı gereği döngü dışındaki buton döngü başlamadan önce sadece 1 kez okunur; döngü içine hapsolan program dışarıdaki butonu bir daha okuyamaz ve sonsuz döngüye girer."
+            },
+            {
+                id: 68,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 28",
+                question: "Integer/String seçicili Case Structure'da hangi case zorunludur?",
+                options: [
+                    "Default",
+                    "True",
+                    "False",
+                    "Error"
+                ],
+                correctIndex: 0,
+                tip: "Sayısal (Integer) veya Metin (String) seçicilerde tanımlanmayan tüm olası değerleri karşılamak için \"Default\" case zorunludur."
+            },
+            {
+                id: 69,
+                category: "KAHOOT",
+                categoryTitle: "Kahoot Canlı Ders Soruları",
+                sourceLabel: "Kahoot • Soru 29",
+                question: "Case Structure'da değer bağlanmayan Boolean çıkış tünelinin varsayılan değeri nedir?",
+                options: [
+                    "True",
+                    "False",
+                    "0",
+                    "Boş (\"\")"
+                ],
+                correctIndex: 1,
+                tip: "\"Use Default If Unwired\" seçildiğinde varsayılan değerler: Boolean için False, Sayısal için 0, String için Boş (\"\") metindir."
             }
         ];
 
         const CATEGORIES = [
-            { id: "ALL", name: "Tüm Sorular", count: 48, icon: "fa-layer-group" },
-            { id: "SINAV1", name: "Genel Değerlendirme Sınavı", count: 10, icon: "fa-file-Check" },
+            { id: "ALL", name: "Tüm Sorular", count: 69, icon: "fa-layer-group" },
+            { id: "SINAV1", name: "Genel Değerlendirme Sınavı", count: 10, icon: "fa-file-check" },
             { id: "TEST1", name: "Test 1: Sensörler & ADC/DAC", count: 10, icon: "fa-wave-square" },
             { id: "TEST2", name: "Test 2: LabVIEW Mimarisi", count: 10, icon: "fa-diagram-project" },
-            { id: "TEST3", name: "Test 3: DAQ & Sinyal Koşullama", count: 10, icon: "fa-Server" },
-            { id: "KAHOOT", name: "Kahoot Canlı Ders Soruları", count: 8, icon: "fa-bolt" },
+            { id: "TEST3", name: "Test 3: DAQ & Sinyal Koşullama", count: 10, icon: "fa-server" },
+            { id: "KAHOOT", name: "Kahoot Canlı Ders Soruları", count: 29, icon: "fa-bolt" },
             { id: "WRONG", name: "Sadece Hatalarım", count: 0, icon: "fa-triangle-exclamation" },
             { id: "STARRED", name: "Yıldızlı Sorularım", count: 0, icon: "fa-star" }
         ];
